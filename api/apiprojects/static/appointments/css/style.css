@@ -1,0 +1,104 @@
+.mainbar{
+    background:white;
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+}
+.navlink{
+    display:flex;
+    gap:15px;
+}
+.navlink a {
+    color: #3b2a35;
+    text-decoration: none;
+    font-weight: 600;
+}
+.logo{
+    font-family: "Great Vibes", cursive;
+  font-weight: 800;
+  font-style: normal;
+}
+body{
+    margin:0;
+    background:rgb(255, 255, 255);
+}
+.backgroundlogo {
+    background-image: url('/static/appointments/images/michelle.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height:500px;
+    width:100%;
+}
+.mainlogo{
+    display:flex;
+    align-items: center;
+}
+.mainlogo h2{
+    margin:0;
+}
+.mainlogo img{
+    height:100px;
+}
+.mainlogo p{
+    font-size: 1.8rem;
+    margin: 0 0 5px 0;
+    letter-spacing: 3px;
+}
+.servicelayout{
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap:2px;
+    border:2px solid black;
+
+}
+.serviceintro{
+    text-align: center;
+}
+.serviceimglayout{
+    text-align: center;
+    display:flex;
+    justify-content: center;
+    border:2px solid black;
+}
+
+.serviceimg img{
+    height:150px;
+    width:100px;
+}
+.salonimg{
+    position:relative;
+    min-height: 400px;
+}
+.salonimg img{
+    position:absolute;
+    object-fit: cover;
+    inset:0;
+    width:100%;
+    height:100%;
+}
+.salondescription{
+    padding-left: 20px;
+}
+.salondescription button{
+    width:25%;
+    height:10%;
+}
+.aboutus{
+    padding:20px;
+    display:grid;
+    grid-template-columns: 1fr 1.6fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+}
+.aboutus > * {
+}
+.bookingimg{
+    grid-column: 1/-1;
+    min-height: 200px;
+    background-image: url('/static/appointments/images/discountsalon.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}

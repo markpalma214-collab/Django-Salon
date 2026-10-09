@@ -1,0 +1,26 @@
+{% extends "appointments/base.html" %}
+
+{% block title %}Appointments{% endblock %}
+
+{% block content %}
+  <div class="row" style="margin-bottom: 1rem;">
+    <h1>Appointments</h1>
+    <a class="btn" href="{% url 'appointment_create' %}">+ Book new</a>
+  </div>
+
+  {% for appointment in appointments %}
+    <div class="card row">
+      <div>
+        <strong>{{ appointment.appointment_date|date:"M d, Y · h:i A" }}</strong><br>
+        {{ appointment.name }} with {{ appointment.staff }}
+      </div>
+      <div>
+        <a class="btn secondary" href="{% url 'appointment_detail' appointment.pk %}">View</a>
+        <a class="btn secondary" href="{% url 'appointment_update' appointment.pk %}">Edit</a>
+        <a class="btn danger" href="{% url 'appointment_delete' appointment.pk %}">Cancel</a>
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">No appointments yet.</p>
+  {% endfor %}
+{% endblock %}

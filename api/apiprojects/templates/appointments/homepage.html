@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{% static 'appointments/css/style.css' %}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="layout">
+            <div class="mainbar">
+                <div class="mainlogo">
+                    <img src="{% static 'appointments/images/michellepg.png' %}">
+                    <div class="logopage">
+                    <h2 class="logo">Michelle's salon</h2>
+                    <p>NAIL SALON</p>
+                    </div>
+                </div>
+                <div class="navlink">
+                    <nav>
+                        <a href="#">HOME</a>
+                        <a href="#">SERVICE</a>
+                        <a href="#">GALLERY</a>
+                        <a href="#">PRICING</a>
+                        <a href="#">ABOUT US</a>
+                        <a href="#">REVIEWS</a>
+                        <a href="#">CONTACT</a>
+                        <a href="#">BOOK NOW</a>
+                    </nav>
+                </div>
+            </div>
+            <div class="backgroundlogo"></div>
+                <div class="serviceintro">
+                    <p>OUR SERVICES</p>
+                    <h1>Nail Care, Perfected</h1>
+                </div>
+            <div class="servicelayout">
+                {% for service in services %}
+                <div class="serviceimglayout">
+                    <div class="serviceimg">
+                        <h3>{{ service.service_name }}</h3>
+                        <img src="{{ service.image.url }}">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="aboutus">
+                <div class="salonimg">
+                    <img src="{% static 'appointments\images\salon.jpg' %}">
+                </div>
+                <div class="salondescription">
+                    <h3>ABOUT US</h3>
+                    <h1>Where Beauty Meets Relaxation</h1>
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Impedit non excepturi animi quo, reiciendis ipsum a facilis harum quia dolor obcaecati ipsam quam sit necessitatibus ipsa minima quos beatae molestiae.</p>
+                    <button>LEARN MORE ABOUT US =></button>
+
+                </div>
+                <div class="bookingimg">
+
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
