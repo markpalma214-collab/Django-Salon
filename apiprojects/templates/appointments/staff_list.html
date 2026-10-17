@@ -1,0 +1,36 @@
+{% extends "appointments/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+  <h1>{{ title }}</h1>
+
+  <div class="staff-grid">
+    {% for staff in staff_members %}
+      <div class="card staff-card">
+        {% if staff.image %}
+          <img src="{{ staff.image.url }}" alt="{{ staff.name }}">
+        {% endif %}
+
+        <h3>{{ staff.name }}</h3>
+
+        <p>
+          {% if staff.avg_rating %}
+            ★ {{ staff.avg_rating|floatformat:1 }} ({{ staff.review_count }} review{{ staff.review_count|pluralize }})
+          {% else %}
+            No ratings yet
+          {% endif %}
+        </p>
+
+        {% if staff.my_rating %}
+          <p>Your rating: {{ staff.my_rating }}/5</p>
+          <a class="btn secondary" href="{% url 'rate_staff' staff.id %}">Change rating</a>
+        {% else %}
+          <a class="btn" href="{% url 'rate_staff' staff.id %}">Rate</a>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p>No staff have been added yet.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

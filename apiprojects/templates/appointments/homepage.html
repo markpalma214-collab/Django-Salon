@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{% static 'appointments/css/style.css' %}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="layout">
+            <div class="mainbar">
+                <div class="mainlogo" id="home">
+                    <img src="{% static 'appointments/images/michellepg.png' %}">
+                    <div class="logopage">
+                    <h2 class="logo">Michelle's salon</h2>
+                    <p>NAIL SALON</p>
+                    </div>
+                </div>
+                <div class="navlink">
+                    <nav>
+                <a href="#home">HOME</a>
+                <a href="#services">SERVICE</a>
+                <a href="#gallery">GALLERY</a>
+                <a href="#pricing">PRICING</a>
+                <a href="#aboutus">ABOUT US</a>
+                <a href="#reviews">REVIEWS</a>
+                <a href="#contact">CONTACT</a>
+                <a href="{% url 'appointment_create' %}">BOOK NOW</a>
+                    {% if request.user.is_authenticated %}
+                    <form method="POST" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit">LOGOUT</button>
+                    </form>
+                    {% else %}
+                    <a href="#">LOGIN</a>
+                    {% endif %}
+                    </nav>
+                </div>
+            </div>
+            <div class="backgroundlogo"></div>
+                <div class="serviceintro" id="services">
+                    <p>OUR SERVICES</p>
+                    <h1>Nail Care, Perfected</h1>
+                </div>
+            <div class="servicelayout">
+                {% for service in services %}
+                <div class="serviceimglayout">
+                    <div class="serviceimg">
+                        <h3>{{ service.service_name }}</h3>
+                        <img src="{{ service.image.url }}">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="aboutus" id="aboutus">
+                <div class="salonimg">
+                    <img src="{% static 'appointments\images\salon.jpg' %}">
+                </div>
+                <div class="salondescription">
+                    <h3>ABOUT US</h3>
+                    <h1>Where Beauty Meets Relaxation</h1>
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Impedit non excepturi animi quo, reiciendis ipsum a facilis harum quia dolor obcaecati ipsam quam sit necessitatibus ipsa minima quos beatae molestiae.</p>
+                    <button>LEARN MORE ABOUT US =></button>
+
+                </div>
+                <div class="bookingimg">
+
+                </div>
+            </div>
+        </div>
+        <script src="{% static 'appointments/javascript/scrollbar.js' %}"></script>
+    </body>
+</html>

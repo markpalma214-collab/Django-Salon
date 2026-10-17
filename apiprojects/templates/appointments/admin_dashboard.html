@@ -1,0 +1,60 @@
+{% extends "appointments/base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+  <h1>All Appointments</h1>
+
+  <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr style="border-bottom: 2px solid #ccc;">
+        <th>Date & Time</th>
+        <th>Client Name</th>
+        <th>Phone</th>
+        <th>Service</th>
+        <th>Staff</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for appt in appointments %}
+        <tr style="border-bottom: 1px solid #eee;">
+          <td>{{ appt.appointment_date|date:"M d, Y h:i A" }}</td>
+          <td>
+            {{ appt.name }} 
+            {% if appt.user %}<br><small>(Account: {{ appt.user.username }})</small>{% endif %}
+          </td>
+          <td>{{ appt.phone_number|default:"-" }}</td>
+          <td>{{ appt.service.name|default:"-" }}</td>
+          <td>{{ appt.staff.name }}</td>
+          <td>
+            <!-- Display status with basic color coding -->
+            <span style="padding: 3px 8px; border-radius: 12px; font-size: 0.85em;
+              {% if appt.status == 'confirmed' %}background: #d4edda; color: #155724;
+              {% elif appt.status == 'pending' %}background: #fff3cd; color: #856404;
+              {% elif appt.status == 'cancelled' %}background: #f8d7da; color: #721c24;
+              {% else %}background: #e2e3e5; color: #383d41;{% endif %}">
+              {{ appt.get_status_display }}
+            </span>
+          </td>
+          <td>
+            <!-- Management Buttons -->
+            <a href="{% url 'appointment_update' appt.pk %}" class="btn secondary btn-sm">Edit</a>
+            
+            {% if appt.status in 'pending,confirmed' %}
+              <form method="POST" action="{% url 'cancel_appointment' appt.pk %}" style="display: inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn danger btn-sm" onclick="return confirm('Cancel this appointment?');">Cancel</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7">No appointments found in the system.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

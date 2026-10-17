@@ -1,0 +1,51 @@
+{% extends "appointments/base.html" %}
+
+{% block title %}Appointments{% endblock %}
+
+{% block content %}
+
+  <!-- Django Messages Rendering -->
+  {% if messages %}
+    <div style="margin-bottom: 1rem;">
+      {% for message in messages %}
+        <div class="message {{ message.tags }}" style="padding: 10px; margin-bottom: 5px; border-radius: 4px; 
+            {% if message.tags == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% endif %}
+            {% if message.tags == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="row" style="margin-bottom: 1rem;">
+    <h1>Appointments</h1>
+    <a class="btn" href="{% url 'appointment_create' %}">+ Book new</a>
+  </div>
+
+  {% for appointment in appointments %}
+    <div class="card row">
+      <div>
+        <strong>{{ appointment.appointment_date|date:"M d, Y · h:i A" }}</strong><br>
+        {{ appointment.name }} with {{ appointment.staff }}
+        
+        <!-- Optional: Show status so the user knows if it's already cancelled -->
+        <span class="muted" style="margin-left: 10px; font-size: 0.9em;">({{ appointment.status }})</span>
+      </div>
+      <div>
+        <a class="btn secondary" href="{% url 'appointment_detail' appointment.pk %}">View</a>
+        <a class="btn secondary" href="{% url 'appointment_update' appointment.pk %}">Edit</a>
+        
+        <!-- POST Form for Cancellation -->
+        {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
+          <form method="POST" action="{% url 'cancel_appointment' appointment.pk %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn danger" onclick="return confirm('Are you sure you want to cancel this appointment?');">Cancel</button>
+          </form>
+        {% endif %}
+        
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">No appointments yet.</p>
+  {% endfor %}
+{% endblock %}

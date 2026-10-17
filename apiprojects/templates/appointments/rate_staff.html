@@ -1,0 +1,21 @@
+{% extends "appointments/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+  <h1>{{ title }}</h1>
+
+  <form method="post" class="card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="field">
+      {{ form.rating.label_tag }}
+      {{ form.rating }}
+      {{ form.rating.errors }}
+    </div>
+
+    <button type="submit" class="btn">Submit rating</button>
+    <a class="btn secondary" href="{% url 'staff_list' %}">Cancel</a>
+  </form>
+{% endblock %}

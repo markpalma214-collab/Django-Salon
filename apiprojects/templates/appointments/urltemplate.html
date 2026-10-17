@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Michelle's Salon{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'appointments/css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="layout">
+        <header class="mainbar">
+            <div class="mainlogo">
+                <img src="{% static 'appointments/images/michellepg.png' %}" alt="Michelle's Salon logo">
+                <div class="logopage">
+                    <h2 class="logo">Michelle's salon</h2>
+                    <p>NAIL SALON</p>
+                </div>
+            </div>
+
+            <div class="navlink">
+                <nav>
+                    <a href="#">HOME</a>
+                    <a href="#">SERVICE</a>
+                    <a href="#">GALLERY</a>
+                    <a href="#">PRICING</a>
+                    <a href="#">ABOUT US</a>
+                    <a href="#">REVIEWS</a>
+                    <a href="#">CONTACT</a>
+                    <a href="{% url 'appointment_create' %}">BOOK NOW</a>
+                    {% if request.user.is_authenticated %}
+                    <form method="POST" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <a href="logout">LOGOUT</a>
+                    </form>
+                    {% else %}
+                    <a href="#">LOGIN</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>
