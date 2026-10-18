@@ -12,6 +12,7 @@ from .models import Appointment, Service, Staff, Review
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Sum
+from django.db import IntegrityError, transaction
 
 
 #==================================================================
@@ -24,33 +25,70 @@ def is_owner(user):
 @user_passes_test(is_owner, login_url="login")
 def crm_dashboard(request):
     appointments = Appointment.objects.select_related("user", "staff", "service").order_by('-appointment_date')
-    completed_appts = appointments.objects.filter(status='completed')
+    completed_appts = appointments.filter(status='completed')
+    
     # get the current date for filtering
-    today = completed_appts.timezone.now().date()
-    total_revenue = completed_appts.aggregate(
-        total=Sum('service__price')['total'] or 0
-    )
-    weekly_revenue = completed_appts.filter(appointment_date__year=today.year, appointment_date__week = today.week).aggregate(total=Sum('service__price'))['total'] or 0
+    today = timezone.now().date()
+    
+    total_revenue = completed_appts.aggregate(total=Sum('service__price'))['total'] or 0
+    
+    # Calculate weekly revenue using a date range
+    start_of_week = today - timedelta(days=today.weekday())
+    weekly_revenue = completed_appts.filter(appointment_date__date__gte=start_of_week).aggregate(total=Sum('service__price'))['total'] or 0
+    
     monthly_revenue = completed_appts.filter(
-        appointment_date__year = today.year
-        appointment_date__month = today.month
-    ).aggregate(total=Sum('service__price')['total'] or 0)
+        appointment_date__year=today.year,
+        appointment_date__month=today.month
+    ).aggregate(total=Sum('service__price'))['total'] or 0
+    
     daily_revenue = completed_appts.filter(
-        appointment_date__date = today
-    ).aggregate(total=Sum('service')['total'] or 0) 
+        appointment_date__date=today
+    ).aggregate(total=Sum('service__price'))['total'] or 0 
+    
     context = {
         "total_revenue": total_revenue,
-        "monthly_revenue":monthly_revenue,
-        "daily_revenue":daily_revenue,
+        "monthly_revenue": monthly_revenue,
+        "daily_revenue": daily_revenue,
+        "weekly_revenue": weekly_revenue,
+        "appointments": appointments,
     }
-    return render(request, 'appointments/admin_dashboard.html', context)
+    return render(request, 'appointments/main_dashboard.html', context)
 
 @staff_member_required
 def admin_dashboard(request):
-    appointments = Appointment.objects.select_related("user","staff", "service").order_by('-appointment_date')
-    return render(request, "appointments/admin_dashboard.html", {"appointments": appointments})
+    appointments = Appointment.objects.select_related("user", "staff", "service").exclude(status='cancelled').order_by('-appointment_date')
+    
+    context = {
+        "appointments": appointments,
+        # This tells the HTML to show the form
+        "can_manage_status": request.user.is_staff, 
+        # This pulls the choices directly from your model
+        "status_choices": Appointment.STATUS_CHOICES, 
+    }
+    
+    return render(request, "appointments/admin_dashboard.html", context)
 
 
+@staff_member_required
+@require_POST
+def appointment_update_status(request, pk):
+    # Find the specific appointment
+    appointment = get_object_or_404(Appointment, pk=pk)
+    
+    # Grab the new status from the dropdown menu in the HTML
+    new_status = request.POST.get('status')
+    
+    # Validate against your model's STATUS_CHOICES before saving
+    valid_statuses = [choice[0] for choice in Appointment.STATUS_CHOICES]
+    if new_status in valid_statuses:
+        appointment.status = new_status
+        appointment.save()
+        messages.success(request, f"Status for {appointment.name} updated to {appointment.get_status_display()}.")
+    else:
+        messages.error(request, "Invalid status selected.")
+        
+    # Refresh the dashboard page
+    return redirect('admin_dashboard')
 
 
 
@@ -87,9 +125,37 @@ from django.contrib.auth.decorators import login_required
 # READ (list)
 @login_required
 def appointment_list(request):
-    # Filter by the logged-in user, keeping your select_related optimization
-    appointments = Appointment.objects.filter(user=request.user).select_related("staff")
-    return render(request, "appointments/list.html", {"appointments": appointments})
+    appointments = Appointment.objects.select_related("staff", "service")
+    if not request.user.is_staff:
+        appointments = appointments.filter(user=request.user).order_by('-appointment_date')
+    return render(request, "appointments/list.html", {
+        "appointments": appointments,
+        "status_choices": Appointment.STATUS_CHOICES,
+        "can_manage_status": request.user.is_staff,
+    })
+
+
+@staff_member_required
+@require_POST
+def appointment_update_status(request, pk):
+    appointment = get_object_or_404(Appointment, pk=pk)
+    new_status = request.POST.get('status')
+    
+    valid_statuses = [choice[0] for choice in Appointment.STATUS_CHOICES]
+    if new_status in valid_statuses:
+        appointment.status = new_status
+        appointment.save()
+        messages.success(request, f"Status for {appointment.name} updated to {appointment.get_status_display()}.")
+    else:
+        messages.error(request, "Invalid status selected.")
+        
+    # FIX: Send the user back to the exact URL they submitted the form from
+    previous_page = request.META.get('HTTP_REFERER')
+    if previous_page:
+        return redirect(previous_page)
+        
+    # Fallback just in case the browser blocks referrer data
+    return redirect('admin_dashboard')
 
 
 # READ (single)
@@ -206,17 +272,28 @@ def staff_list(request):
 @login_required
 @require_POST
 def cancel_appointment(request, pk):
-    appointment = get_object_or_404(Appointment, pk=pk, user=request.user)
+    # 1. Staff can find any appointment, regular users only find their own
+    if request.user.is_staff:
+        appointment = get_object_or_404(Appointment, pk=pk)
+    else:
+        appointment = get_object_or_404(Appointment, pk=pk, user=request.user)
+        
     deadline = appointment.appointment_date - timedelta(hours=2)
 
-    if appointment.status in ("pending", "confirmed") and timezone.now() < deadline:
-        appointment.status = "cancelled"
-        appointment.save()
-        messages.success(request, "Your appointment has been cancelled.")
-    else:
-        if appointment.status not in ("pending", "confirmed"):
-            messages.error(request, "This appointment can't be cancelled.")
-        else:
+    # 2. Staff can bypass the 2-hour deadline, regular users cannot
+    is_past_deadline = timezone.now() >= deadline
+    
+    if appointment.status in ("pending", "confirmed"):
+        if not request.user.is_staff and is_past_deadline:
             messages.error(request, "Cancellations must be made at least 2 hours before the appointment.")
+        else:
+            appointment.status = "cancelled"
+            appointment.save()
+            messages.success(request, "The appointment has been cancelled.")
+    else:
+        messages.error(request, "This appointment can't be cancelled.")
 
+    # 3. Redirect staff back to dashboard, and regular users back to their list
+    if request.user.is_staff:
+        return redirect("admin_dashboard")
     return redirect("appointment_list")

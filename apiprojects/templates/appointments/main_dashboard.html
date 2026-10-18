@@ -1,0 +1,82 @@
+{% load static %}
+
+<head>
+<link rel="stylesheet" href="{% static 'appointments/css/admin.css' %}">
+</head>
+<body>
+<div class="layout">
+<div class="main-menu-bar">
+  <nav class="url-bar">
+    <h2>Main Menu</h2>
+    <a href="#">Dashboard</a>
+    <a href="#">Revenue Analysis</a>
+    <a href="#">Branch Management</a>
+    <a href="#">Staff Overview</a>
+    <a href="#">Services</a>
+    <a href="#">Tools</a>
+  </nav>
+</div>
+<div class="inner-content">
+  <div class="header-row">
+    <div class="greetings">
+    <h1>Analytics Overview</h1>
+    <h3>Welcome back! super admin Here's your business at a glance.</h3>
+  </div>
+     <div class="option-select">
+    <select name="branch" class="branch-select">
+      <option value="">All branches</option>
+  <option value="downtown">Downtown</option>
+      <option value="uptown">Uptown</option>
+      <option value="westside">Westside</option>
+    </select>
+  </div>
+  </div>
+  <div class=revenue-main>
+    <div class="today's revenue">
+      <h1>Today's Revenue</h1>
+      <h1>{{ daily_revenue }}</h1>
+    </div>
+    <div class="total-revenue">
+      <h1>Total Revenue</h1>
+      <h1>${{ total_revenue }}</h1>
+    </div>
+    <div class="total-appointments">
+      <h1>Total Appointments:</h1>
+      <h1>$300</h1>
+    </div>
+    <div class=total-clients>
+      <h1>Total Clients:</h1>
+      <h1>200</h1>
+    </div>
+    <div class="branch-comparison"></div>
+    <canvas id="topServiceschart"></canvas>
+  </div>
+
+  
+
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('topServiceschart')
+
+const chartData = {
+    labels:['Haircut', 'Facial', 'Massage'],
+    datasets:[{
+        data:[10, 20, 30],
+        backgroundColor:['#FF6384', '#36A2EB', '#FFCE56'],          
+    }]
+
+};
+new Chart(ctx, {
+    type:'doughnut',
+    data:chartData,
+    options:{
+        cutout:'50%'
+    }
+}
+);
+</script>
+
+</body>
+
