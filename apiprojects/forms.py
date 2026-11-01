@@ -1,7 +1,25 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Appointment, Review
+from .models import Appointment, Review, Branch
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
+
+User = get_user_model()
+
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
 
 
 class AppointmentForm(forms.ModelForm):
@@ -15,7 +33,7 @@ class AppointmentForm(forms.ModelForm):
 
     class Meta:
         model = Appointment
-        fields = ["name","phone_number", "staff", "service", "appointment_date", "note"]
+        fields = ["name","phone_number", "branch", "staff", "service", "appointment_date", "note"]
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": "Your full name"}),
             "phone_number": forms.TextInput(attrs={
@@ -29,6 +47,12 @@ class AppointmentForm(forms.ModelForm):
                 attrs={"rows": 3, "placeholder": "Anything we should know? (optional)"}
             ),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["branch"].queryset = Branch.objects.filter(is_active=True)
+        self.fields["branch"].required = True
+        self.fields["branch"].empty_label = "Select a branch"
+
 
     # These two are OUTSIDE Meta, at the same indentation level as Meta
     def clean_appointment_date(self):

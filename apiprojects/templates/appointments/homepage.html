@@ -24,7 +24,7 @@
                 <a href="#gallery">GALLERY</a>
                 <a href="#pricing">PRICING</a>
                 <a href="#aboutus">ABOUT US</a>
-                <a href="#reviews">REVIEWS</a>
+                <a href="{% url 'staff_list' %}">REVIEWS</a>
                 <a href="#contact">CONTACT</a>
                 <a href="{% url 'appointment_create' %}">BOOK NOW</a>
                     {% if request.user.is_authenticated %}
@@ -64,10 +64,79 @@
                     <button>LEARN MORE ABOUT US =></button>
 
                 </div>
-                <div class="bookingimg">
-
-                </div>
+                <div class="bookingimg"></div>
+             
             </div>
+            <section class="booking-section">
+                <div class="booking-landing">
+                    <div class="head-title">
+                        <h1>Ready to transform your beauty?</h1>
+                        <h3>Book your Appointment</h3>
+                    </div>
+                    <div class="sub-title">
+                        <p>Your beauty matters. shock everyone with your transformation!</p>
+                    </div>
+                    <ul class="badges">
+                         <li>Sanitized Tools</li>
+                        <li>Premium Products</li>
+                        <li>Skilled Technicians</li>
+                        <li>Easy Rescheduling</li>
+                    </ul>
+                </div>
+                <div class="booking-form">
+  <form method="post" action="{% url 'appointment_create' %}" class="booking-form__grid">
+    {% csrf_token %}
+
+    <div class="field full">
+      <label for="{{ form.name.id_for_label }}">Full Name *</label>
+      {{ form.name }}
+      {{ form.name.errors }}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.phone_number.id_for_label }}">Phone *</label>
+      {{ form.phone_number }}
+      {{ form.phone_number.errors }}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.appointment_date.id_for_label }}">Date & Time *</label>
+      {{ form.appointment_date }}
+      {{ form.appointment_date.errors }}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.staff.id_for_label }}">Technician *</label>
+      {{ form.staff }}
+      {{ form.staff.errors }}
+    </div>
+    <div class="field full">
+  <label for="{{ form.branch.id_for_label }}">Branch *</label>
+  {{ form.branch }}
+  {{ form.branch.errors }}
+</div>
+
+    <div class="field">
+      <label for="{{ form.service.id_for_label }}">Service *</label>
+      {{ form.service }}
+      {{ form.service.errors }}
+    </div>
+
+    <div class="field full">
+      <label for="{{ form.note.id_for_label }}">Note</label>
+      {{ form.note }}
+      {{ form.note.errors }}
+    </div>
+    <div class="branch">
+        
+    </div>
+
+    <button type="submit" class="full">Book Now</button>
+  </form>
+</div>
+                
+            </section>
+
         </div>
         <script src="{% static 'appointments/javascript/scrollbar.js' %}"></script>
     </body>

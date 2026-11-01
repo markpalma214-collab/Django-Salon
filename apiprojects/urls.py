@@ -4,6 +4,8 @@ urlpatterns = [
     path('appointment/<int:pk>/update-status/', views.appointment_update_status, name='appointment_update_status'),
     path('salon/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('crm/dashboard/', views.crm_dashboard, name='crm_dashboard'),
+    path("login_account/", views.login_view, name="login"),
+    path("register/", views.register_view, name="register"),
     path("logout/", views.logout, name="logout"),
     path("login/", views.login_or_register, name="login"),
     path("staff/", views.staff_list, name="staff_list"),
@@ -16,5 +18,5 @@ urlpatterns = [
     path("appointments/<int:pk>/status/", views.appointment_update_status, name="appointment_update_status"),
     path('appointment/<int:pk>/cancel/', views.cancel_appointment, name='cancel_appointment'),
     path("appointments/<int:pk>/delete/", views.appointment_delete, name="appointment_delete"),
-
+    
 ]

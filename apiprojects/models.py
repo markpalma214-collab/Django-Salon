@@ -12,6 +12,7 @@ phone_validator = RegexValidator(
 # Create your models here.
 
 class Staff(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="staff_profile", null=True, blank=True)
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to="staff/")
     base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -28,7 +29,8 @@ class ServiceCategory(models.Model):
      name = models.CharField(max_length=50, unique=True)
      def __str__(self):
           return self.name     
-     
+
+# does the profit come from the service?
 class Service(models.Model):
     service_name = models.CharField(max_length=100)
     category = models.ForeignKey(ServiceCategory, on_delete=models.PROTECT, related_name="services", null=True, blank=True)
@@ -83,6 +85,7 @@ class Appointment(models.Model):
         Staff, on_delete=models.PROTECT, related_name="appointments"
     )
     service = models.ForeignKey(Service, on_delete=models.PROTECT, null=True)
+    branch = models.ForeignKey(Branch, on_delete=models.PROTECT, null=True, blank=True, related_name="appointments")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
     appointment_date = models.DateTimeField()
@@ -135,6 +138,18 @@ class Inventory(models.Model):
      def __str__(self):
           return f"STOCK FOR {self.name}: {self.quantity}"
 
+class Expense(models.Model):
+    description = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField()
+    branch = models.ForeignKey(Branch, on_delete=models.PROTECT, null=True, blank=True)
+    inventory_item = models.ForeignKey(
+        Inventory, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="purchases",
+    )
+    quantity_added = models.PositiveIntegerField(null=True, blank=True)
 
-
-     
+class InventoryItem(models.Model):
+    name = models.CharField(max_length=100)   # "Hair dye - black"
+    quantity = models.PositiveIntegerField(default=0)
+    unit = models.CharField(max_length=20)    # "bottles", "boxes"    

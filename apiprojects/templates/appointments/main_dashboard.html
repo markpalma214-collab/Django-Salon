@@ -2,6 +2,9 @@
 
 <head>
 <link rel="stylesheet" href="{% static 'appointments/css/admin.css' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="layout">
@@ -13,6 +16,7 @@
     <a href="#">Branch Management</a>
     <a href="#">Staff Overview</a>
     <a href="#">Services</a>
+    <a href=#>Inventory</a>
     <a href="#">Tools</a>
   </nav>
 </div>
@@ -20,7 +24,7 @@
   <div class="header-row">
     <div class="greetings">
     <h1>Analytics Overview</h1>
-    <h3>Welcome back! super admin Here's your business at a glance.</h3>
+    <h3>Welcome back, {{ request.user.username }}! Here's your business at a glance.</h3>
   </div>
      <div class="option-select">
     <select name="branch" class="branch-select">
@@ -29,27 +33,39 @@
       <option value="uptown">Uptown</option>
       <option value="westside">Westside</option>
     </select>
+    <select name="date_range" class="date-select">
+      <option value="Today">Today</option>
+      <option value="Week">Last 7 days</option>
+      <option value="Month">Last 30 days</option>
+      <option value="Year">Last year</option>
+    </select>
   </div>
   </div>
   <div class=revenue-main>
-    <div class="today's revenue">
-      <h1>Today's Revenue</h1>
-      <h1>{{ daily_revenue }}</h1>
+    <div class="today-revenue">
+      <p>TODAY'S TOTAL REVENUE </p>
+      <h1>$ {{ daily_revenue }} </h1>
     </div>
     <div class="total-revenue">
-      <h1>Total Revenue</h1>
+      <p>Total Appointments: </p>
       <h1>${{ total_revenue }}</h1>
     </div>
     <div class="total-appointments">
-      <h1>Total Appointments:</h1>
-      <h1>$300</h1>
+      <p>Total Clients:</p>
+      <h1>{{ total_clients }}</h1>
     </div>
     <div class=total-clients>
-      <h1>Total Clients:</h1>
-      <h1>200</h1>
+      <p>Average Rating:</p>
+      <h1>{{ average_rating|floatformat:"1" }}</h1>
     </div>
-    <div class="branch-comparison"></div>
+    <div class="chart-container-large">
+    <canvas id="Branch-Comparison"></canvas>
+    </div>
+    <div class="chart-container-small">
     <canvas id="topServiceschart"></canvas>
+    </div>
+    </div>
+    
   </div>
 
   
@@ -59,7 +75,24 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const ctx = document.getElementById('topServiceschart')
-
+const barBranch = document.getElementById('Branch-Comparison')
+const branchData = {
+  labels: ['Naic', 'Tanza', 'Dasmarinas'],
+  datasets: [{
+    label:'Revenue',
+    data:[1000, 2000, 1500],
+    backgroundColor:'#6A0DAD',
+    borderRadius:4,
+  },
+  {
+    label:'Appointments',
+    data:[50, 75, 60],
+    backgroundColor:'#FFCE56',
+    borderRadius:4,
+  }
+  
+]
+}
 const chartData = {
     labels:['Haircut', 'Facial', 'Massage'],
     datasets:[{
@@ -76,6 +109,26 @@ new Chart(ctx, {
     }
 }
 );
+new Chart(barBranch, {
+  type:'bar',
+  data:branchData,
+  options:{
+    plugins:{
+      title:{
+        display:true,
+        text:'Branch Comparison',
+        font:{
+          size:18
+        }
+      }
+    },
+    scales:{
+      y:{
+        beginAtZero:true
+      }
+    }
+  }
+})
 </script>
 
 </body>

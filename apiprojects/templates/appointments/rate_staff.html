@@ -1,21 +1,17 @@
-{% extends "appointments/base.html" %}
+<p>rating for {{ staff.name }}</p>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Submit review</button>
+</form>
+{% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+      <div class="alert {{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 
-{% block title %}{{ title }}{% endblock %}
-
-{% block content %}
-  <h1>{{ title }}</h1>
-
-  <form method="post" class="card">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-
-    <div class="field">
-      {{ form.rating.label_tag }}
-      {{ form.rating }}
-      {{ form.rating.errors }}
-    </div>
-
-    <button type="submit" class="btn">Submit rating</button>
-    <a class="btn secondary" href="{% url 'staff_list' %}">Cancel</a>
-  </form>
-{% endblock %}
+{% block content %}{% endblock %}

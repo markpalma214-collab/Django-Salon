@@ -1,16 +1,14 @@
-.navlink{
-    
-}
+
 html{
     scroll-behavior:smooth;
 }
 
 .mainbar{
-    background:white;
+    background: rgba(255, 253, 253, 0.8);
     display:flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px;
+    backdrop-filter: blur(8px);
     position:sticky;
     top: 0;
     z-index:1000;
@@ -44,12 +42,14 @@ body{
 .mainlogo{
     display:flex;
     align-items: center;
+
 }
 .mainlogo h2{
     margin:0;
 }
 .mainlogo img{
     height:100px;
+    mix-blend-mode: multiply;
 }
 .mainlogo p{
     font-size: 1.8rem;
@@ -111,4 +111,132 @@ body{
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+.booking-section{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem;
+    min-height: 100vh;
+    background-image:url('/static/appointments/images/Gemini_salon.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding:20px;
+
+}
+
+.booking-landing{
+    color:white;
+}
+.head-title h1, h3{
+    font-size:35px;
+    margin:0;
+}
+.head-title h1{
+    margin-bottom:8px;
+}
+.badges{
+    list-style: none;
+    padding:0px;
+    gap: 10px;
+    margin: 16px 0 0;
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+
+}
+.badges li{
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(6px);
+    font-size: 14px;
+    font-weight: 600;
+}
+.badges li::before{
+    content: "✓";
+    color: #f0c75e;
+    margin-right: 8px;
+}
+
+.booking-form{
+    border-radius:13px;
+    background-color:white;
+    padding:20px;
+    width:100%;
+    min-height:600px;   
+    max-width: 480px;
+    align-items: center;
+    display: flex;               /* so the form can stretch to fill the card */
+    flex-direction: column;
+}
+.booking-form__grid{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));     gap: 1.25rem;
+    flex:1;
+}
+.full{
+    grid-column: 1/-1;
+}
+.field label{
+    display: block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing: 1px;
+    text-transform:uppercase;
+     color: #6b5560;
+     margin-bottom:6px;
+}
+.field input,
+.field select,
+.field textarea{
+    width:100%;
+    font-size:14px;
+    border: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    background: #f3eff0;
+    border-radius:10px;
+
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+    outline: 2px solid #a30d1c;
+    background: #fff;
+}
+.field textarea{
+    resize: none;
+    min-height: 90px;
+}
+.booking-form__grid button{
+    padding: 12px;
+    height: 46px;
+    align-self: start;
+    border: none;
+    border-radius: 12px;
+    background: #a30d1c;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.booking-form__grid button{
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #a30d1c;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.booking-form__grid button:hover{
+    background: #7d0916;
 }

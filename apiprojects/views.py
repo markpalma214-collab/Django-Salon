@@ -8,11 +8,71 @@ from django.contrib.auth.decorators import user_passes_test, login_required
 from .forms import AppointmentForm, ReviewForm
 from django.views.decorators.http import require_POST
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import Appointment, Service, Staff, Review
+from .models import Appointment, Service, Staff, Review, Branch
 from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.db import IntegrityError, transaction
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from .forms import RegisterForm
+
+
+# ================================================================= #
+# authentication section
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect("home")  # change to your own URL name
+
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            messages.success(request, f"Welcome, {user.username}!")
+            return redirect("home")
+    else:
+        form = RegisterForm()
+
+    return render(request, "appointments/register.html", {"form": form})
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f"Welcome back, {user.username}!")
+
+            # go back to the page they came from, but only if it's safe
+            next_url = request.POST.get("next") or request.GET.get("next")
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
+            return redirect("home")
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "appointments/login.html", {"form": form})
+
+
+
+
+
+
+
+
+
+
+
 
 
 #==================================================================
@@ -22,10 +82,25 @@ from django.db import IntegrityError, transaction
 def is_owner(user):
     return user.is_authenticated and user.is_superuser
 
-@user_passes_test(is_owner, login_url="login")
+def is_staff(user):
+    return user.is_authenticated and Staff.objects.filter(user=user).exists()
+def can_view_dashboard(user):
+    return is_owner(user) or is_staff(user)
+
+@user_passes_test(can_view_dashboard, login_url="login")
 def crm_dashboard(request):
+    print(request.user, request.user.is_superuser, request.user.is_staff)
+    if is_owner(request.user):
+        reviews = Review.objects.all() # the owner can see all reviews
+    else:
+        reviews = Review.objects.filter(staff__user=request.user)
+    stats = reviews.aggregate(avg=Avg('rating'), count=Count('id'))
+    avg_rating = stats["avg"] or 0
+    total_reviews = stats["count"]
+
     appointments = Appointment.objects.select_related("user", "staff", "service").order_by('-appointment_date')
     completed_appts = appointments.filter(status='completed')
+    clients = completed_appts.aggregate(client=Count("user", distinct=True))["client"] 
     
     # get the current date for filtering
     today = timezone.now().date()
@@ -51,11 +126,15 @@ def crm_dashboard(request):
         "daily_revenue": daily_revenue,
         "weekly_revenue": weekly_revenue,
         "appointments": appointments,
+        "average_rating":avg_rating,
+        "total_reviews": total_reviews,
+        "total_clients": clients,
     }
     return render(request, 'appointments/main_dashboard.html', context)
 
 @staff_member_required
 def admin_dashboard(request):
+    
     appointments = Appointment.objects.select_related("user", "staff", "service").exclude(status='cancelled').order_by('-appointment_date')
     
     context = {
@@ -116,8 +195,12 @@ def login_or_register(request):
 @login_required()
 def homepage(request):
     serviceobj = Service.objects.all()
+    branch = Branch.objects.filter(is_active=True)
+    forms = AppointmentForm()
     context = {
-        "services":serviceobj
+        "services":serviceobj,
+        "branch":branch,
+        "form":forms
     }
     return render(request, "appointments/homepage.html", context)
 from django.contrib.auth.decorators import login_required
@@ -184,7 +267,7 @@ def appointment_create(request):
     else:
         form = AppointmentForm()
         
-    return render(request, 'appointments/form.html', {'form': form})
+    return render(request, 'appointments/homepage.html', {'form': form})
 
 # UPDATE
 def appointment_update(request, pk):
@@ -216,6 +299,7 @@ def appointment_delete(request, pk):
 
 
 # reviewing form
+@login_required
 def rate_staff(request, staff_id):
     staff = get_object_or_404(Staff, pk=staff_id)
 
@@ -239,28 +323,15 @@ def rate_staff(request, staff_id):
         "staff": staff,
         "title": f"Rate {staff}",
     })
+
+
 from django.db.models import Avg, Count
 
-
 def staff_list(request):
-    staff_members = list(
-        Staff.objects.annotate(
-            avg_rating=Avg("reviews__rating"),
-            review_count=Count("reviews"),
-        )
+    staff_members = Staff.objects.annotate(
+        average_rating = Avg("reviews__rating"),
+        review_count = Count("reviews")
     )
-
-    # Ratings the current user already gave, as {staff_id: rating}
-    my_ratings = {}
-    if request.user.is_authenticated:
-        my_ratings = dict(
-            Review.objects.filter(user=request.user)
-            .values_list("staff_id", "rating")
-        )
-
-    for member in staff_members:
-        member.my_rating = my_ratings.get(member.id)
-
     return render(request, "appointments/staff_list.html", {
         "staff_members": staff_members,
         "title": "Our Staff",

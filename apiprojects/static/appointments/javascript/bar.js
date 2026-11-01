@@ -16,3 +16,7 @@ new Chart(ctx, {
     }
 }
 );
+
+
+const cxData = document.getElementById(".canva")
+
