@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}CRM{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'appointments/css/admin.css' %}">
+  <link rel="stylesheet" href="{% static 'appointments/css/crm_sidebar.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="layout">
+
+  <div class="main-menu-bar">
+
+    <!-- Logo + salon name -->
+    <a href="{% url 'crm_dashboard' %}" class="brand">
+      <span class="brand__logo">
+        <img src="{% static 'appointments/images/michellepg.png' %}" alt="Michelle's Salon logo">
+      </span>
+      <span class="brand__text">
+        <span class="brand__name">Michelle's Salon</span>
+        <span class="brand__tag">Admin Panel</span>
+      </span>
+    </a>
+
+    <!-- Links -->
+    <p class="menu-label">Main Menu</p>
+    <nav class="url-bar">
+      <a href="{% url 'crm_dashboard' %}" class="{% if '/crm/dashboard/' in request.path %}is-active{% endif %}">
+        <iconify-icon icon="ph:squares-four-duotone"></iconify-icon><span>Dashboard</span>
+      </a>
+      <a href="#">
+        <iconify-icon icon="ph:chart-line-up-duotone"></iconify-icon><span>Revenue Analysis</span>
+      </a>
+      <a href="{% url 'crm_branches' %}" class="{% if '/crm/branches/' in request.path %}is-active{% endif %}">
+        <iconify-icon icon="ph:storefront-duotone"></iconify-icon><span>Branch Management</span>
+      </a>
+      <a href="{% url 'crm_staff' %}" class="{% if '/crm/staff/' in request.path %}is-active{% endif %}">
+        <iconify-icon icon="ph:users-three-duotone"></iconify-icon><span>Staff Overview</span>
+      </a>
+      <a href="{% url 'crm_services' %}" class="{% if '/crm/services/' in request.path %}is-active{% endif %}">
+        <iconify-icon icon="ph:sparkle-duotone"></iconify-icon><span>Services</span>
+      </a>
+      <a href="#">
+        <iconify-icon icon="ph:package-duotone"></iconify-icon><span>Inventory</span>
+      </a>
+      <a href="#">
+        <iconify-icon icon="ph:wrench-duotone"></iconify-icon><span>Tools</span>
+      </a>
+    </nav>
+
+    <!-- Current user + sign out -->
+    <div class="account">
+      <div class="account__who">
+        {% if request.user.staff_profile.image %}
+          <img class="account__avatar" src="{{ request.user.staff_profile.image.url }}" alt="">
+        {% else %}
+          <span class="account__avatar">{{ request.user.username|first|upper }}</span>
+        {% endif %}
+        <div class="account__info">
+          <span class="account__name">{{ request.user.username }}</span>
+          <span class="account__status">
+            {% if request.user.is_superuser %}Super Admin
+            {% elif request.user.staff_profile %}{{ request.user.staff_profile.role|default:"Staff" }}
+            {% else %}Staff{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="signout">
+          <iconify-icon icon="ph:sign-out-duotone"></iconify-icon> Sign out
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="inner-content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

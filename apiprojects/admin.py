@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Staff, Service, Appointment, Review, Branch
+from .models import Staff, Service, Appointment, Review, Branch, ServiceCategory, SiteTestimonial, AboutSection
 from django import forms
 from django.db import models
 
@@ -38,5 +38,26 @@ class BranchAdmin(admin.ModelAdmin):
         },
     }
 
+@admin.register(SiteTestimonial)
+class SiteTestimonialAdmin(admin.ModelAdmin):
+    list_display = ("author_name", "author_role", "location", "rating", "is_published", "sort_order")
+    list_editable = ("is_published", "sort_order")
+    list_filter = ("is_published", "rating")
+    search_fields = ("author_name", "quote")
+
+@admin.register(ServiceCategory)
+class ServiceCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "starting_price", "tick_popular")
+    list_editable = ("starting_price", "tick_popular")
+
+
+@admin.register(AboutSection)
+class AboutSectionAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return not AboutSection.objects.exists()      # keep it to a single row
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
 admin.site.register(Appointment)
 admin.site.register(Review)

@@ -1,0 +1,426 @@
+/* ===== Our Services + About Us (homepage) ===== */
+
+.svc,
+.ab {
+    --red: #a30d1c;
+    --red-dark: #6e0a14;
+    --red-deep: #4a0610;
+    --red-light: #fde8e6;
+    --red-mist: #fff6f4;
+    --ink: #1c1214;
+    --muted: #6f5f62;
+    --line: #eddcdc;
+    --heading: "Playfair Display", Georgia, serif;
+    --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--body);
+    color: var(--ink);
+}
+
+.svc *,
+.ab * {
+    box-sizing: border-box;
+}
+
+.svc iconify-icon,
+.ab iconify-icon {
+    display: inline-block;
+    vertical-align: -0.15em;
+}
+
+/* the navbar is sticky, so leave room when an anchor link scrolls here */
+#services,
+#aboutus,
+#booking {
+    scroll-margin-top: 100px;
+}
+
+@keyframes sec-rise {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Our Services ===== */
+.svc {
+    padding: clamp(64px, 9vh, 110px) 24px;
+    background: var(--red-mist);
+}
+
+.svc-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.svc-head {
+    margin-bottom: 52px;
+    text-align: center;
+}
+
+.svc-eyebrow {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--red);
+}
+
+.svc-title {
+    margin: 0;
+    font-family: var(--heading);
+    font-size: clamp(32px, 4.5vw, 48px);
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.svc-sub {
+    margin: 12px 0 0;
+    color: var(--muted);
+}
+
+/* three columns; new categories flow into new rows by themselves */
+.svc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px 24px;
+    padding-top: 12px;
+}
+
+.svc-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 14px 20px;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 8px 28px rgba(60, 40, 45, .07);
+    transition: transform .3s cubic-bezier(.2, .8, .2, 1), box-shadow .3s ease, border-color .3s ease;
+    animation: sec-rise .6s ease backwards;
+    /* "backwards" so the hover lift still works */
+    animation-delay: calc(min(var(--i, 0), 8) * 70ms);
+}
+
+.svc-card:hover {
+    transform: translateY(-8px);
+    border-color: #e9b4af;
+    box-shadow: 0 22px 44px rgba(163, 13, 28, .16);
+}
+
+.svc-card.is-popular {
+    border-color: var(--red);
+}
+
+.svc-card.is-popular:hover {
+    border-color: var(--red);
+}
+
+.svc-badge {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    z-index: 2;
+    transform: translateX(-50%);
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: var(--red-dark);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.svc-card__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--red-light);
+}
+
+.svc-card__media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .5s ease;
+}
+
+.svc-card:hover .svc-card__media img {
+    transform: scale(1.06);
+}
+
+.svc-card__placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 56px;
+    color: var(--red);
+    opacity: .55;
+}
+
+.svc-card__title {
+    margin: 6px 6px 0;
+    font-family: var(--heading);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--red);
+}
+
+.svc-card__text {
+    margin: 0 6px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.svc-card__foot {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin: auto 6px 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.svc-price {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--red);
+}
+
+.svc-price span {
+    margin-right: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.svc-book {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: var(--red-light);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--red-dark);
+    text-decoration: none;
+    transition: background .2s ease, color .2s ease;
+}
+
+.svc-book iconify-icon {
+    transition: transform .2s ease;
+}
+
+.svc-book:hover {
+    background: var(--red);
+    color: #fff;
+}
+
+.svc-book:hover iconify-icon {
+    transform: translateX(4px);
+}
+
+.svc-empty {
+    padding: 40px 16px;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* ===== About Us ===== */
+.ab {
+    padding: clamp(56px, 8vh, 100px) 24px;
+    background: #fff;
+}
+
+.ab-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+/* 3 columns x 2 rows: text (2 cols) + photo (1 col), then three stats */
+.ab-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.ab-box {
+    border-radius: 24px;
+    transition: transform .3s cubic-bezier(.2, .8, .2, 1), box-shadow .3s ease;
+    animation: sec-rise .6s ease backwards;
+    animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+.ab-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 22px 44px rgba(163, 13, 28, .2);
+}
+
+.ab-text {
+    position: relative;
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    overflow: hidden;
+    padding: clamp(28px, 4vw, 48px);
+    color: #fff;
+    background: linear-gradient(145deg, #8a0c1a 0%, var(--red-dark) 55%, var(--red-deep) 100%);
+}
+
+.ab-text::after {
+    content: "";
+    position: absolute;
+    top: -70px;
+    right: -70px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .07);
+    pointer-events: none;
+}
+
+.ab-eyebrow {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: #f6b9b4;
+}
+
+.ab-title {
+    margin: 0;
+    font-family: var(--heading);
+    font-size: clamp(28px, 3.6vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.ab-desc {
+    max-width: 56ch;
+    margin: 0;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, .88);
+}
+
+.ab-photo {
+    position: relative;
+    min-height: 300px;
+    margin: 0;
+    overflow: hidden;
+    background: var(--red-light);
+}
+
+.ab-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .6s ease;
+}
+
+.ab-photo:hover img {
+    transform: scale(1.05);
+}
+
+.ab-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(74, 6, 16, .35), transparent 55%);
+    pointer-events: none;
+}
+
+.ab-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 28px;
+    background: var(--red-light);
+    border: 1px solid #f6d3cf;
+}
+
+.ab-stat iconify-icon {
+    font-size: 30px;
+    color: var(--red);
+}
+
+.ab-stat__num {
+    font-family: var(--heading);
+    font-size: clamp(38px, 4.5vw, 54px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--red);
+}
+
+.ab-stat__num span {
+    margin-left: 2px;
+    font-size: .6em;
+}
+
+.ab-stat__label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .svc-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .ab-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ab-text {
+        grid-column: auto;
+    }
+
+    .ab-photo {
+        min-height: 240px;
+    }
+}
+
+@media (max-width: 600px) {
+    .svc-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .svc-card,
+    .ab-box {
+        animation: none;
+        transition: none;
+    }
+
+    .svc-card:hover,
+    .ab-box:hover {
+        transform: none;
+    }
+}

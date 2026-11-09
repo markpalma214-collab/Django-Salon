@@ -1,0 +1,137 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
+
+{% block title %}Services{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'appointments/css/services.css' %}">
+
+<div class="sv" id="sv">
+
+  <header class="sv-top">
+    <div class="sv-heading">
+      <h1>Services</h1>
+      <p>{{ total }} service{{ total|pluralize }} across {{ categories|length }} categor{{ categories|length|pluralize:"y,ies" }}</p>
+    </div>
+
+    <div class="sv-tools">
+      <label class="sv-search">
+        <iconify-icon icon="ph:magnifying-glass-duotone"></iconify-icon>
+        <input type="search" id="sv-search" placeholder="Search services" autocomplete="off">
+      </label>
+
+      <div class="sv-chips">
+        <button type="button" class="sv-chip is-active" data-category="all">All <span>{{ total }}</span></button>
+        {% for c in categories %}
+          <button type="button" class="sv-chip" data-category="{{ c.pk }}">{{ c.name }} <span>{{ c.n }}</span></button>
+        {% endfor %}
+      </div>
+
+      <a href="{% url 'crm_service_create' %}" class="sv-create">
+        <iconify-icon icon="ph:plus-bold"></iconify-icon> Create
+      </a>
+    </div>
+  </header>
+
+  {% for message in messages %}
+    <p class="sv-message sv-message--{{ message.tags }}">{{ message }}</p>
+  {% endfor %}
+
+  {% if services %}
+    <div class="sv-grid">
+      {% for s in services %}
+      <article class="sv-card" style="--i:{{ forloop.counter0 }}"
+               data-name="{{ s.service_name|lower }}"
+               data-category="{{ s.category_id|default_if_none:'' }}">
+
+        <div class="sv-card__media">
+          {% if s.image %}
+            <img src="{{ s.image.url }}" alt="{{ s.service_name }}" loading="lazy">
+          {% else %}
+            <div class="sv-card__placeholder"><iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon></div>
+          {% endif %}
+        </div>
+
+        <div class="sv-card__body">
+          <div class="sv-row">
+            <span class="sv-tag">{{ s.category.name|default:"Uncategorized" }}</span>
+            {% if s.rating %}
+              <span class="sv-rating"><iconify-icon icon="ph:star-fill"></iconify-icon>{{ s.rating|floatformat:1 }}</span>
+            {% else %}
+              <span class="sv-rating sv-rating--none">No ratings</span>
+            {% endif %}
+          </div>
+
+          <h3 class="sv-name">{{ s.service_name }}</h3>
+
+          <div class="sv-row">
+            <span class="sv-price">₱{{ s.price|floatformat:"-2g" }}</span>
+            <span class="sv-appts">
+              <iconify-icon icon="ph:calendar-check-duotone"></iconify-icon>
+              {{ s.appt_count }} appointment{{ s.appt_count|pluralize }}
+            </span>
+          </div>
+
+          <div class="sv-actions">
+            <a href="{% url 'crm_service_edit' s.pk %}" class="sv-btn sv-btn--edit">
+              <iconify-icon icon="ph:pencil-simple-line-duotone"></iconify-icon> Edit
+            </a>
+            <form method="post" action="{% url 'crm_service_delete' s.pk %}"
+                  onsubmit="return confirm('Delete {{ s.service_name|escapejs }}? This cannot be undone.');">
+              {% csrf_token %}
+              <button type="submit" class="sv-btn sv-btn--delete">
+                <iconify-icon icon="ph:trash-duotone"></iconify-icon> Delete
+              </button>
+            </form>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="sv-empty" id="sv-empty" hidden>
+      <iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon>
+      <p>No services match your search.</p>
+    </div>
+  {% else %}
+    <div class="sv-empty">
+      <iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon>
+      <p>No services yet. Use the Create button to add your first one.</p>
+    </div>
+  {% endif %}
+</div>
+
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script>
+(function () {
+  const root = document.getElementById("sv");
+  const cards = Array.from(root.querySelectorAll(".sv-card"));
+  if (!cards.length) return;
+
+  const chips = Array.from(root.querySelectorAll(".sv-chip"));
+  const search = document.getElementById("sv-search");
+  const empty = document.getElementById("sv-empty");
+  let category = "all";
+
+  function apply() {
+    const q = search.value.trim().toLowerCase();
+    let shown = 0;
+    cards.forEach(card => {
+      const matchesName = card.dataset.name.includes(q);
+      const matchesCategory = category === "all" || card.dataset.category === category;
+      card.hidden = !(matchesName && matchesCategory);
+      if (!card.hidden) shown++;
+    });
+    empty.hidden = shown !== 0;
+  }
+
+  chips.forEach(chip => chip.addEventListener("click", () => {
+    category = chip.dataset.category;
+    chips.forEach(c => c.classList.toggle("is-active", c === chip));
+    apply();
+  }));
+
+  search.addEventListener("input", apply);
+})();
+</script>
+{% endblock %}

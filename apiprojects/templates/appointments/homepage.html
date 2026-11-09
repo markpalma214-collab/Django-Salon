@@ -5,13 +5,17 @@
         <link rel="stylesheet" href="{% static 'appointments/css/style.css' %}">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'appointments/css/reviews.css' %}">
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'appointments/css/sections.css' %}">
     </head>
     <body>
         <div class="layout">
             <div class="mainbar">
                 <div class="mainlogo" id="home">
-                    <img src="{% static 'appointments/images/michellepg.png' %}">
+                    <img src="{% static 'appointments/images/transparent_salon.png' %}">
                     <div class="logopage">
                     <h2 class="logo">Michelle's salon</h2>
                     <p>NAIL SALON</p>
@@ -39,35 +43,89 @@
                 </div>
             </div>
             <div class="backgroundlogo"></div>
-                <div class="serviceintro" id="services">
-                    <p>OUR SERVICES</p>
-                    <h1>Nail Care, Perfected</h1>
+                           <section class="svc" id="services">
+                <div class="svc-inner">
+                    <header class="svc-head">
+                        <p class="svc-eyebrow">Our services</p>
+                        <h2 class="svc-title">Nail Care, Perfected</h2>
+                        <p class="svc-sub">Pick what you need, then book your slot in a few taps.</p>
+                    </header>
+
+                    {% if categories %}
+                    <div class="svc-grid">
+                        {% for c in categories %}
+                        <article class="svc-card{% if c.tick_popular %} is-popular{% endif %}" style="--i:{{ forloop.counter0 }}">
+                            {% if c.tick_popular %}<span class="svc-badge">Most popular</span>{% endif %}
+
+                            <div class="svc-card__media">
+                                {% if c.image %}
+                                    <img src="{{ c.image.url }}" alt="{{ c.name }}" loading="lazy">
+                                {% else %}
+                                    <span class="svc-card__placeholder"><iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon></span>
+                                {% endif %}
+                            </div>
+
+                            <h3 class="svc-card__title">{{ c.name }}</h3>
+                            <p class="svc-card__text">{{ c.description }}</p>
+
+                            <div class="svc-card__foot">
+                                {% if c.starting_price %}
+                                    <p class="svc-price"><span>From</span> ₱{{ c.starting_price|floatformat:"-2g" }}</p>
+                                {% endif %}
+                                <a href="#booking" class="svc-book">
+                                    Book this service <iconify-icon icon="ph:arrow-right-bold"></iconify-icon>
+                                </a>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="svc-empty">Our services are being updated. Please check back soon.</p>
+                    {% endif %}
                 </div>
-            <div class="servicelayout">
-                {% for service in services %}
-                <div class="serviceimglayout">
-                    <div class="serviceimg">
-                        <h3>{{ service.service_name }}</h3>
-                        <img src="{{ service.image.url }}">
+            </section>
+
+            </div>
+            <section class="ab" id="aboutus">
+                <div class="ab-inner">
+                    <div class="ab-grid">
+
+                        <article class="ab-box ab-text" style="--i:0">
+                            <p class="ab-eyebrow">About us</p>
+                            <h2 class="ab-title">{{ about.title }}</h2>
+                            <p class="ab-desc">{{ about.description|linebreaksbr }}</p>
+                        </article>
+
+                        <figure class="ab-box ab-photo" style="--i:1">
+                            {% if about.image %}
+                                <img src="{{ about.image.url }}" alt="Inside Michelle's Salon">
+                            {% else %}
+                                <img src="{% static 'appointments/images/salon.jpg' %}" alt="Inside Michelle's Salon">
+                            {% endif %}
+                        </figure>
+
+                        <article class="ab-box ab-stat" style="--i:2">
+                            <iconify-icon icon="ph:hourglass-medium-duotone"></iconify-icon>
+                            <strong class="ab-stat__num">{{ about.years_of_expertise }}<span>+</span></strong>
+                            <span class="ab-stat__label">{{ about.years_label }}</span>
+                        </article>
+
+                        <article class="ab-box ab-stat" style="--i:3">
+                            <iconify-icon icon="ph:certificate-duotone"></iconify-icon>
+                            <strong class="ab-stat__num">{{ about.certified_stylists }}<span>+</span></strong>
+                            <span class="ab-stat__label">{{ about.certified_label }}</span>
+                        </article>
+
+                        <article class="ab-box ab-stat" style="--i:4">
+                            <iconify-icon icon="ph:sparkle-duotone"></iconify-icon>
+                            <strong class="ab-stat__num">{{ about.premium_treatments }}<span>+</span></strong>
+                            <span class="ab-stat__label">{{ about.treatments_label }}</span>
+                        </article>
+
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-            <div class="aboutus" id="aboutus">
-                <div class="salonimg">
-                    <img src="{% static 'appointments\images\salon.jpg' %}">
-                </div>
-                <div class="salondescription">
-                    <h3>ABOUT US</h3>
-                    <h1>Where Beauty Meets Relaxation</h1>
-                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Impedit non excepturi animi quo, reiciendis ipsum a facilis harum quia dolor obcaecati ipsam quam sit necessitatibus ipsa minima quos beatae molestiae.</p>
-                    <button>LEARN MORE ABOUT US =></button>
-
-                </div>
-                <div class="bookingimg"></div>
-             
-            </div>
-            <section class="booking-section">
+            </section>
+            <section class="booking-section" id="booking"> 
                 <div class="booking-landing">
                     <div class="head-title">
                         <h1>Ready to transform your beauty?</h1>
@@ -135,9 +193,79 @@
   </form>
 </div>
                 
+        </section>
+                    <section class="rv" id="reviews">
+                <div class="rv-inner">
+
+                    {% for message in messages %}
+                        <p class="rv-message rv-message--{{ message.tags }}">{{ message }}</p>
+                    {% endfor %}
+
+                    <header class="rv-head">
+                        <p class="rv-eyebrow">Kind words</p>
+                        <h2 class="rv-title">Loved by <span>our clients</span></h2>
+                        <p class="rv-sub">Real words from the guests of Michelle's Salon.</p>
+                        <span class="rv-bar"></span>
+                    </header>
+
+                    {% if testimonials %}
+                    <div class="rv-quotes">
+                        {% for t in testimonials %}
+                        <article class="rv-quote" style="--i:{{ forloop.counter0 }}">
+                            <span class="rv-quote__badge"><iconify-icon icon="ph:quotes-fill"></iconify-icon></span>
+                            <div class="rv-quote__top">
+                                <span class="rv-stars-static" aria-label="{{ t.rating }} out of 5">
+                                    {% for i in "12345" %}<iconify-icon icon="ph:star-fill"{% if forloop.counter > t.rating %} class="is-off"{% endif %}></iconify-icon>{% endfor %}
+                                </span>
+                                {% if t.tag %}<span class="rv-pill">{{ t.tag }}</span>{% endif %}
+                            </div>
+                            <p class="rv-quote__text">“{{ t.quote }}”</p>
+                            <div class="rv-quote__who">
+                                {% if t.photo %}
+                                    <img class="rv-avatar" src="{{ t.photo.url }}" alt="{{ t.author_name }}">
+                                {% else %}
+                                    <span class="rv-avatar">{{ t.author_name|first|upper }}</span>
+                                {% endif %}
+                                <div>
+                                    <strong>{{ t.author_name }}</strong>
+                                    {% if t.author_role %}<span>{{ t.author_role }}</span>{% endif %}
+                                    {% if t.location %}<em>{{ t.location }}</em>{% endif %}
+                                </div>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="rv-subhead">
+                        <h3>What guests say about our technicians</h3>
+                        <a href="{% url 'review_create' %}" class="rv-cta">
+                            <iconify-icon icon="ph:pencil-simple-line-duotone"></iconify-icon> Write a review
+                        </a>
+                    </div>
+
+                    {% if client_reviews %}
+                    <div class="rv-marquee{% if client_reviews|length < 4 %} is-static{% endif %}" style="--count:{{ client_reviews|length }}">
+                        <div class="rv-track">
+                            <div class="rv-set">
+                                {% for r in client_reviews %}{% include "appointments/_review_card.html" %}{% endfor %}
+                            </div>
+                            {% if client_reviews|length >= 4 %}
+                            <div class="rv-set" aria-hidden="true">
+                                {% for r in client_reviews %}{% include "appointments/_review_card.html" %}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="rv-empty">No reviews yet. Be the first to share your experience.</p>
+                    {% endif %}
+
+                </div>
             </section>
 
         </div>
+        <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
         <script src="{% static 'appointments/javascript/scrollbar.js' %}"></script>
     </body>
 </html>

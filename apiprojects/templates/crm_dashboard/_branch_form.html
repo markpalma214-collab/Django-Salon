@@ -1,0 +1,59 @@
+<form method="post" enctype="multipart/form-data" class="bm-form"
+      action="{% url 'crm_branches' %}{% if branch %}?branch={{ branch.pk }}{% endif %}">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="{{ action }}">
+  {{ form.non_field_errors }}
+
+  <div class="bm-grid">
+    <div class="bm-field bm-span-2">
+      <label for="{{ form.name.id_for_label }}">Branch name</label>
+      {{ form.name }}
+      {{ form.name.errors }}
+    </div>
+
+    <div class="bm-field">
+      <label for="{{ form.address.id_for_label }}">Address</label>
+      {{ form.address }}
+      {{ form.address.errors }}
+    </div>
+
+    <div class="bm-field">
+      <label for="{{ form.phone.id_for_label }}">Phone number</label>
+      {{ form.phone }}
+      {{ form.phone.errors }}
+    </div>
+
+    <div class="bm-field bm-span-2">
+      <label for="{{ form.image.id_for_label }}">Branch photo</label>
+      {% if preview and preview.image %}
+        <img class="bm-preview" src="{{ preview.image.url }}" alt="{{ preview.name }}">
+      {% endif %}
+      {{ form.image }}
+      {{ form.image.errors }}
+    </div>
+
+    <div class="bm-field">
+      <label for="{{ form.opening_time.id_for_label }}">Opening time</label>
+      {{ form.opening_time }}
+      {{ form.opening_time.errors }}
+    </div>
+
+    <div class="bm-field">
+      <label for="{{ form.closing_time.id_for_label }}">Closing time</label>
+      {{ form.closing_time }}
+      {{ form.closing_time.errors }}
+    </div>
+
+    <div class="bm-field bm-span-2">
+      <label for="{{ form.map_link.id_for_label }}">Map link</label>
+      {{ form.map_link }}
+      {{ form.map_link.errors }}
+    </div>
+
+    <div class="bm-field bm-span-2">
+      <label class="bm-check">{{ form.is_active }} Open for booking</label>
+    </div>
+  </div>
+
+  <button type="submit" class="bm-btn">{{ button }}</button>
+</form>

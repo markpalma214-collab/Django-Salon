@@ -14,7 +14,10 @@ phone_validator = RegexValidator(
 class Staff(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="staff_profile", null=True, blank=True)
     name = models.CharField(max_length=100)
+    role = models.CharField(max_length=60, blank=True)
     image = models.ImageField(upload_to="staff/")
+    number = models.CharField(max_length=20, null=True, blank=True)
+    location = models.CharField(max_length=100, null=True, blank=True)
     base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     commission_rate = models.DecimalField(max_digits=4, decimal_places=2, default=0)
 
@@ -26,9 +29,44 @@ class Staff(models.Model):
 
 
 class ServiceCategory(models.Model):
-     name = models.CharField(max_length=50, unique=True)
-     def __str__(self):
-          return self.name     
+    name = models.CharField(max_length=50, unique=True)
+    image = models.ImageField(upload_to="categories/", blank=True)
+    description = models.TextField(blank=True)
+    starting_price = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True,
+        help_text="Shown as 'From ₱…' in the Our Services section.",
+    )
+    tick_popular = models.BooleanField(default=False, verbose_name="Most popular")
+
+    class Meta:
+        verbose_name_plural = "service categories"
+
+    def __str__(self):
+        return self.name
+
+class AboutSection(models.Model):
+    """The About Us block on the homepage. Only one row is used; edit it in the admin."""
+    title = models.CharField(max_length=120, default="Where Beauty Meets Relaxation")
+    description = models.TextField(
+        default="At Michelle's Salon, every visit is a small escape. Our skilled technicians "
+                "pair premium products with careful, personal service, so you leave feeling "
+                "polished and refreshed."
+    )
+    image = models.ImageField(upload_to="about/", blank=True)
+
+    years_of_expertise = models.PositiveIntegerField(default=5)
+    years_label = models.CharField(max_length=40, default="Years of expertise")
+    certified_stylists = models.PositiveIntegerField(default=5)
+    certified_label = models.CharField(max_length=40, default="Certified stylists")
+    premium_treatments = models.PositiveIntegerField(default=50)
+    treatments_label = models.CharField(max_length=40, default="Premium hair treatments")
+
+    class Meta:
+        verbose_name = "About section"
+        verbose_name_plural = "About section"
+
+    def __str__(self):
+        return "About section"
 
 # does the profit come from the service?
 class Service(models.Model):
@@ -153,3 +191,24 @@ class InventoryItem(models.Model):
     name = models.CharField(max_length=100)   # "Hair dye - black"
     quantity = models.PositiveIntegerField(default=0)
     unit = models.CharField(max_length=20)    # "bottles", "boxes"    
+
+class SiteTestimonial(models.Model):
+    """Testimonials about the salon itself. Curated by the admin."""
+    author_name = models.CharField(max_length=100)
+    author_role = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    photo = models.ImageField(upload_to="testimonials/", blank=True)
+    quote = models.TextField()
+    rating = models.PositiveSmallIntegerField(
+        default=5, validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    tag = models.CharField(max_length=40, blank=True)
+    is_published = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sort_order", "-pk"]
+
+    def __str__(self):
+        return f"{self.author_name} ({'published' if self.is_published else 'draft'})"

@@ -1,0 +1,102 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+ <div class="header-row">
+    <div class="greetings">
+      <h1>Analytics Overview</h1>
+      <h3>Welcome back, {{ request.user.username }}! Here's your business at a glance.</h3>
+    </div>
+
+    <form method="get" class="option-select">
+      <select name="branch" class="branch-select" onchange="this.form.submit()">
+        <option value="">All branches</option>
+        {% for b in branches %}
+          <option value="{{ b.pk }}" {% if selected_branch and b.pk == selected_branch.pk %}selected{% endif %}>{{ b.name }}</option>
+        {% endfor %}
+      </select>
+      <select name="range" class="date-select" onchange="this.form.submit()">
+        {% for value, label in date_ranges %}
+          <option value="{{ value }}" {% if value == range_key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="revenue-main">
+    <div class="today-revenue">
+      <p>TODAY'S TOTAL REVENUE</p>
+      <h1>$ {{ daily_revenue }}</h1>
+    </div>
+    <div class="total-revenue">
+      <p>Total Appointments:</p>
+      <h1>${{ total_revenue }}</h1>
+    </div>
+    <div class="total-appointments">
+      <p>Total Clients:</p>
+      <h1>{{ total_clients }}</h1>
+    </div>
+    <div class="total-clients">
+      <p>Average Rating:</p>
+      <h1>{{ average_rating|floatformat:"1" }}</h1>
+    </div>
+    <div class="chart-container-large">
+      <canvas id="Branch-Comparison"></canvas>
+    </div>
+    <div class="chart-container-small">
+      <canvas id="topServiceschart"></canvas>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{{ branch_chart|json_script:"branch-chart-data" }}
+{{ service_chart|json_script:"service-chart-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const branchData = JSON.parse(document.getElementById('branch-chart-data').textContent);
+const serviceData = JSON.parse(document.getElementById('service-chart-data').textContent);
+const palette = ['#FF6384', '#36A2EB', '#FFCE56', '#6A0DAD', '#1F9D55', '#FF9F40'];
+
+// Bar chart: revenue on the left axis, appointment count on the right axis
+new Chart(document.getElementById('Branch-Comparison'), {
+  type: 'bar',
+  data: {
+    labels: branchData.labels,
+    datasets: [
+      { label: 'Revenue (₱)', data: branchData.revenue, backgroundColor: '#6A0DAD', borderRadius: 4, yAxisID: 'y' },
+      { label: 'Appointments', data: branchData.appointments, backgroundColor: '#FFCE56', borderRadius: 4, yAxisID: 'y1' }
+    ]
+  },
+  options: {
+    plugins: { title: { display: true, text: 'Branch Comparison', font: { size: 18 } } },
+    scales: {
+      y:  { beginAtZero: true, position: 'left',
+            ticks: { callback: v => '₱' + v.toLocaleString() } },
+      y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false },
+            ticks: { precision: 0 } }
+    }
+  }
+});
+
+// Doughnut: top services
+const pie = document.getElementById('topServiceschart');
+if (serviceData.labels.length) {
+  new Chart(pie, {
+    type: 'doughnut',
+    data: {
+      labels: serviceData.labels,
+      datasets: [{
+        data: serviceData.counts,
+        backgroundColor: serviceData.labels.map((_, i) => palette[i % palette.length])
+      }]
+    },
+    options: { cutout: '50%' }
+  });
+} else {
+  pie.insertAdjacentHTML('afterend', '<p style="text-align:center;color:#6b7385;">No bookings in this period.</p>');
+}
+</script>
+{% endblock %}

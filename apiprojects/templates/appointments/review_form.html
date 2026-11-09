@@ -1,0 +1,169 @@
+{% extends 'appointments/urltemplate.html' %}
+{% load static %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'appointments/css/reviews.css' %}">
+
+<div class="rv-page">
+  <div class="rv-page__inner">
+
+    <a class="rv-back" href="{% url 'homepage' %}#reviews">
+      <iconify-icon icon="ph:arrow-left-bold"></iconify-icon> Back to reviews
+    </a>
+
+    <h1>Review a technician</h1>
+    <p class="rv-page__sub">Choose who looked after you, then tell us how it went.</p>
+
+    {% for message in messages %}
+      <p class="rv-message rv-message--{{ message.tags }}">{{ message }}</p>
+    {% endfor %}
+
+    {% if staff_members %}
+
+    <div class="rv-picker" id="rv-picker" tabindex="0"
+         data-initial="{{ selected_id }}" data-bound="{% if form.is_bound %}1{% endif %}">
+
+      <button type="button" class="rv-arrow" data-step="-1" aria-label="Previous staff member">
+        <iconify-icon icon="ph:caret-left-bold"></iconify-icon>
+      </button>
+
+      <div class="rv-stage">
+        {% for s in staff_members %}
+        <article class="rv-slide" data-staff-id="{{ s.pk }}" data-name="{{ s.name }}"
+                 data-rating="{{ s.my_rating }}" data-message="{{ s.my_message }}" hidden>
+          {% if s.image %}
+            <img class="rv-slide__photo" src="{{ s.image.url }}" alt="{{ s.name }}">
+          {% else %}
+            <span class="rv-slide__photo rv-slide__photo--blank">{{ s.name|first|upper }}</span>
+          {% endif %}
+          <h2 class="rv-slide__name">{{ s.name }}</h2>
+          <p class="rv-slide__role">{{ s.role|default:"Technician" }}</p>
+          <p class="rv-slide__meta">
+            <iconify-icon icon="ph:star-fill"></iconify-icon>
+            {% if s.avg_rating %}{{ s.avg_rating|floatformat:1 }} · {{ s.review_count }} review{{ s.review_count|pluralize }}{% else %}No reviews yet{% endif %}
+          </p>
+        </article>
+        {% endfor %}
+      </div>
+
+      <button type="button" class="rv-arrow" data-step="1" aria-label="Next staff member">
+        <iconify-icon icon="ph:caret-right-bold"></iconify-icon>
+      </button>
+    </div>
+
+    <div class="rv-dots" id="rv-dots">
+      {% for s in staff_members %}
+        <button type="button" class="rv-dot" aria-label="Show {{ s.name }}"></button>
+      {% endfor %}
+    </div>
+
+    <button type="button" class="rv-cta rv-open" id="rv-open">
+      <iconify-icon icon="ph:pencil-simple-line-duotone"></iconify-icon> Write a review
+    </button>
+
+    <form method="post" action="{% url 'review_create' %}" class="rv-form" id="rv-form"{% if not form.is_bound %} hidden{% endif %}>
+      {% csrf_token %}
+      <input type="hidden" name="staff" id="rv-staff" value="{{ selected_id }}">
+      {{ form.non_field_errors }}
+
+      <fieldset class="rv-field">
+        <legend>Your rating</legend>
+        <div class="rv-stars">
+          {% for n in "54321" %}
+            <input type="radio" id="rv-star-{{ n }}" name="rating" value="{{ n }}" required
+                   {% if form.rating.value|stringformat:"s" == n %}checked{% endif %}>
+            <label for="rv-star-{{ n }}" title="{{ n }} star{{ n|pluralize }}">
+              <iconify-icon icon="ph:star-fill"></iconify-icon>
+            </label>
+          {% endfor %}
+        </div>
+        {{ form.rating.errors }}
+      </fieldset>
+
+      <div class="rv-field">
+        <label for="rv-message">Your comment</label>
+        <textarea id="rv-message" name="message" rows="5" required
+                  placeholder="What did you love? Anything we can improve?">{{ form.message.value|default:'' }}</textarea>
+        {{ form.message.errors }}
+      </div>
+
+      <div class="rv-form__actions">
+        <button type="submit" class="rv-cta"><span id="rv-submit-label">Post review</span></button>
+        <button type="button" class="rv-cancel" id="rv-cancel">Cancel</button>
+      </div>
+    </form>
+
+    {% else %}
+      <p class="rv-empty">There are no staff members to review yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script>
+(function () {
+  const root = document.getElementById("rv-picker");
+  if (!root) return;
+
+  const slides = Array.from(root.querySelectorAll(".rv-slide"));
+  const arrows = Array.from(root.querySelectorAll(".rv-arrow"));
+  const dotsWrap = document.getElementById("rv-dots");
+  const dots = Array.from(dotsWrap.querySelectorAll(".rv-dot"));
+  const openBtn = document.getElementById("rv-open");
+  const panel = document.getElementById("rv-form");
+  const cancelBtn = document.getElementById("rv-cancel");
+  const staffInput = document.getElementById("rv-staff");
+  const stars = Array.from(panel.querySelectorAll('input[name="rating"]'));
+  const message = document.getElementById("rv-message");
+  const submitLabel = document.getElementById("rv-submit-label");
+  const bound = root.dataset.bound === "1";   // true when the page reloaded with form errors
+
+  let index = Math.max(0, slides.findIndex(s => s.dataset.staffId === root.dataset.initial));
+
+  // Fill the form with the user's existing review for this staff member, if any
+  function prefill(slide) {
+    const rating = slide.dataset.rating;
+    stars.forEach(s => { s.checked = s.value === rating; });
+    message.value = slide.dataset.message || "";
+    submitLabel.textContent = rating ? "Update review" : "Post review";
+  }
+
+  function show(i, withPrefill) {
+    index = (i + slides.length) % slides.length;
+    slides.forEach((s, n) => { s.hidden = n !== index; });
+    dots.forEach((d, n) => d.classList.toggle("is-current", n === index));
+    staffInput.value = slides[index].dataset.staffId;
+    if (withPrefill) prefill(slides[index]);
+  }
+
+  function openForm() {
+    panel.hidden = false;
+    openBtn.hidden = true;
+    message.focus({ preventScroll: false });
+  }
+
+  function closeForm() {
+    panel.hidden = true;
+    openBtn.hidden = false;
+  }
+
+  arrows.forEach(a => a.addEventListener("click", () => show(index + Number(a.dataset.step), true)));
+  dots.forEach((d, n) => d.addEventListener("click", () => show(n, true)));
+  root.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft") show(index - 1, true);
+    if (e.key === "ArrowRight") show(index + 1, true);
+  });
+  openBtn.addEventListener("click", openForm);
+  cancelBtn.addEventListener("click", closeForm);
+
+  if (slides.length < 2) {
+    arrows.forEach(a => { a.hidden = true; });
+    dotsWrap.hidden = true;
+  }
+
+  show(index, !bound);
+  if (bound) openBtn.hidden = true;
+})();
+</script>
+{% endblock %}

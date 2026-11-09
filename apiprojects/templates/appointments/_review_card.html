@@ -1,0 +1,29 @@
+{% with client=r.user.get_full_name|default:r.user.username %}
+<article class="rv-card">
+  <div class="rv-card__people">
+    <div class="rv-person">
+      <span class="rv-avatar">{{ client|first|upper }}</span>
+      <strong class="rv-person__name">{{ client }}</strong>
+      <span class="rv-person__tag">Client</span>
+    </div>
+
+    <iconify-icon class="rv-card__arrow" icon="ph:arrow-right-bold"></iconify-icon>
+
+    <div class="rv-person">
+      {% if r.staff.image %}
+        <img class="rv-avatar" src="{{ r.staff.image.url }}" alt="{{ r.staff.name }}">
+      {% else %}
+        <span class="rv-avatar">{{ r.staff.name|first|upper }}</span>
+      {% endif %}
+      <strong class="rv-person__name">{{ r.staff.name }}</strong>
+      <span class="rv-person__tag">{{ r.staff.role|default:"Technician" }}</span>
+    </div>
+  </div>
+
+  <span class="rv-stars-static" aria-label="{{ r.rating }} out of 5">
+    {% for i in "12345" %}<iconify-icon icon="ph:star-fill"{% if forloop.counter > r.rating %} class="is-off"{% endif %}></iconify-icon>{% endfor %}
+  </span>
+
+  <p class="rv-card__text">{{ r.message }}</p>
+</article>
+{% endwith %}

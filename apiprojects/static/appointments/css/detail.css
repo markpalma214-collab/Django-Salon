@@ -1,0 +1,243 @@
+/* ===== Appointment detail page: Michelle's Salon theme ===== */
+
+.appt-page {
+  --crimson: #9e0b1d;
+  --crimson-dark: #6b0c1b;
+  --wine: #3a0711;
+  --gold: #e0b659;
+  --gold-soft: rgba(224, 182, 89, 0.55);
+  --cream: #fbf6f3;
+  --blush: #f1eeee;
+  --ink: #2a1a1c;
+  --muted: #7a6366;
+
+  min-height: calc(100vh - 190px);
+  padding: 48px 16px 72px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(224, 182, 89, 0.20), transparent 38%),
+    radial-gradient(circle at 88% 82%, rgba(224, 182, 89, 0.14), transparent 42%),
+    linear-gradient(160deg, var(--wine) 0%, var(--crimson-dark) 55%, var(--wine) 100%);
+}
+
+.appt-card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--cream);
+  border: 1px solid var(--gold-soft);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* ----- Header ----- */
+.appt-header {
+  padding: 34px 32px 28px;
+  text-align: center;
+  color: #fff;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(224, 182, 89, 0.25), transparent 60%),
+    linear-gradient(135deg, var(--crimson) 0%, var(--crimson-dark) 100%);
+  border-bottom: 3px solid var(--gold);
+}
+
+.appt-eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  color: var(--gold);
+}
+
+.appt-title {
+  margin: 0 0 16px;
+  font-family: "Great Vibes", cursive;
+  font-weight: 400;
+  font-size: 46px;
+  line-height: 1.1;
+  color: #fff;
+}
+
+/* ----- Status badge ----- */
+.appt-status {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: #fff;
+  color: var(--ink);
+}
+.appt-status--pending   { background: #fff3d1; color: #8a6200; }
+.appt-status--confirmed { background: #dff3e4; color: #1f6b35; }
+.appt-status--completed { background: #f0dde0; color: var(--crimson-dark); }
+.appt-status--cancelled { background: #e8e4e4; color: #6d6466; }
+.appt-status--no_show   { background: #fbe0d6; color: #a23a12; }
+
+/* ----- Date and time highlight ----- */
+.appt-when {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  margin: 28px 28px 8px;
+  padding: 20px 12px;
+  background: var(--blush);
+  border: 1px solid var(--gold-soft);
+  border-radius: 16px;
+}
+
+.appt-when__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.appt-when__value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--crimson);
+}
+
+.appt-when__sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.appt-when__divider {
+  width: 1px;
+  background: var(--gold-soft);
+  margin: 4px 0;
+}
+
+/* ----- Labels (same look as the booking form labels) ----- */
+.appt-label,
+.appt-details dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ----- Detail rows ----- */
+.appt-details {
+  margin: 0;
+  padding: 8px 32px 4px;
+}
+
+.appt-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(158, 11, 29, 0.10);
+}
+.appt-row:last-child { border-bottom: none; }
+
+.appt-details dd {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* ----- Actions ----- */
+.appt-actions {
+  padding: 8px 32px 32px;
+  text-align: center;
+}
+
+.appt-actions form { margin: 0; }
+
+.appt-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+.appt-btn:active { transform: translateY(1px); }
+
+.appt-btn--outline {
+  background: transparent;
+  color: var(--crimson);
+  border: 2px solid var(--crimson);
+}
+.appt-btn--outline:hover {
+  background: var(--crimson);
+  color: #fff;
+}
+
+.appt-btn--solid {
+  background: var(--crimson);
+  color: #fff;
+  border: 2px solid var(--crimson);
+}
+.appt-btn--solid:hover {
+  background: var(--crimson-dark);
+  border-color: var(--crimson-dark);
+}
+
+.appt-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ----- Empty state ----- */
+.appt-empty {
+  padding: 36px 32px 40px;
+  text-align: center;
+}
+.appt-empty h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  color: var(--crimson);
+}
+.appt-empty p {
+  margin: 0 0 24px;
+  color: var(--muted);
+}
+
+/* ----- Messages ----- */
+.appt-messages { padding: 16px 20px 0; }
+
+.appt-message {
+  margin: 0 0 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  border-left: 4px solid var(--gold);
+  background: #fff7e0;
+  color: #6b4d00;
+}
+.appt-message--success { background: #e3f4e7; border-color: #2e8b4a; color: #1f5e33; }
+.appt-message--error   { background: #fbe4e4; border-color: var(--crimson); color: var(--crimson-dark); }
+
+/* ----- Small screens ----- */
+@media (max-width: 520px) {
+  .appt-page { padding: 24px 12px 48px; }
+  .appt-header { padding: 28px 20px 22px; }
+  .appt-title { font-size: 38px; }
+  .appt-when { margin: 20px 16px 4px; }
+  .appt-when__value { font-size: 20px; }
+  .appt-details { padding: 8px 20px 4px; }
+  .appt-row { grid-template-columns: 1fr; gap: 4px; }
+  .appt-actions { padding: 8px 20px 28px; }
+}

@@ -1,0 +1,61 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
+
+{% block title %}Edit {{ member.name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'appointments/css/services.css' %}">
+<link rel="stylesheet" href="{% static 'appointments/css/staff.css' %}">
+
+<div class="sv st">
+  <a class="sv-back" href="{% url 'crm_staff_detail' member.pk %}">
+    <iconify-icon icon="ph:arrow-left-bold"></iconify-icon> Back to {{ member.name }}
+  </a>
+
+  <div class="sv-heading"><h1>Edit {{ member.name }}</h1></div>
+
+  <form method="post" enctype="multipart/form-data" class="sv-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="sv-field">
+      <label for="{{ form.name.id_for_label }}">Name</label>
+      {{ form.name }} {{ form.name.errors }}
+    </div>
+    <div class="sv-field">
+      <label for="{{ form.role.id_for_label }}">Role</label>
+      {{ form.role }} {{ form.role.errors }}
+    </div>
+    <div class="sv-field">
+      <label for="{{ form.number.id_for_label }}">Phone number</label>
+      {{ form.number }} {{ form.number.errors }}
+    </div>
+    <div class="sv-field">
+      <label for="{{ form.location.id_for_label }}">Location</label>
+      {{ form.location }} {{ form.location.errors }}
+    </div>
+    <div class="sv-field">
+      <label for="{{ form.image.id_for_label }}">Photo</label>
+      {% if member.image %}<img class="sv-preview" src="{{ member.image.url }}" alt="{{ member.name }}">{% endif %}
+      {{ form.image }} {{ form.image.errors }}
+    </div>
+    <div class="sv-field">
+      <label for="{{ form.base_salary.id_for_label }}">Base salary (₱)</label>
+      {{ form.base_salary }} {{ form.base_salary.errors }}
+    </div>
+    <div class="sv-field">
+      <label for="{{ form.commission_rate.id_for_label }}">Commission rate</label>
+      {{ form.commission_rate }} {{ form.commission_rate.errors }}
+    </div>
+
+    <div class="sv-form__actions">
+      <button type="submit" class="sv-create">
+        <iconify-icon icon="ph:check-bold"></iconify-icon> Save changes
+      </button>
+      <a href="{% url 'crm_staff_detail' member.pk %}" class="sv-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+{% endblock %}

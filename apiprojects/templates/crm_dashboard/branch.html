@@ -1,0 +1,193 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
+
+{% block title %}Branch Management{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'appointments/css/branch_management.css' %}">
+
+<div class="bm" id="bm" data-force-tab="{{ force_tab }}">
+
+  <header class="bm-header">
+    <h1>Branch Management</h1>
+    <p>View a branch's day, edit its details, or add a new one.</p>
+  </header>
+
+  {% for message in messages %}
+    <p class="bm-message bm-message--{{ message.tags }}">{{ message }}</p>
+  {% endfor %}
+
+  <!-- Tab bar -->
+  <nav class="bm-tabs">
+    <div class="bm-dropdown">
+      <button type="button" class="bm-tab is-active" data-tab="current"
+              id="bm-branch-toggle" aria-haspopup="true" aria-expanded="false">
+        Current branch{% if branch %} · {{ branch.name }}{% endif %} <span class="bm-caret">▾</span>
+      </button>
+      <ul class="bm-menu" id="bm-menu" hidden>
+        {% for b in branches %}
+          <li>
+            <a href="?branch={{ b.pk }}#current"
+               {% if branch and b.pk == branch.pk %}class="is-selected"{% endif %}>
+              {{ b.name }}{% if not b.is_active %} (closed){% endif %}
+            </a>
+          </li>
+        {% empty %}
+          <li><span class="bm-menu__empty">No branches yet</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <button type="button" class="bm-tab" data-tab="edit">Edit branch</button>
+    <button type="button" class="bm-tab" data-tab="create">Create branch</button>
+  </nav>
+
+  <!-- Tab 1: current branch -->
+  <section class="bm-panel" data-panel="current">
+    {% if branch %}
+      <div class="bm-cards">
+        <article class="bm-card bm-card--revenue" style="--i:0">
+          <span class="bm-card__label">Daily revenue</span>
+          <strong class="bm-card__value">₱{{ daily_revenue|floatformat:"2g" }}</strong>
+          <span class="bm-card__hint">Completed appointments today</span>
+        </article>
+
+        <article class="bm-card bm-card--profit" style="--i:1">
+          <span class="bm-card__label">Daily profit</span>
+          <strong class="bm-card__value {% if daily_profit < 0 %}is-negative{% endif %}">
+            ₱{{ daily_profit|floatformat:"2g" }}
+          </strong>
+          <span class="bm-card__hint">Revenue minus today's expenses</span>
+        </article>
+
+        <article class="bm-card bm-card--appointments" style="--i:2">
+          <span class="bm-card__label">Daily appointments</span>
+          <strong class="bm-card__value">{{ daily_appointments }}</strong>
+          <span class="bm-card__hint">Booked for today, not cancelled</span>
+        </article>
+      </div>
+
+ <div class="bm-table-card">
+        <div class="bm-table-head">
+          <h2>Appointments</h2>
+          <span class="bm-count">{{ rows_total }}</span>
+
+          <form method="get" class="bm-filters">
+            <input type="hidden" name="branch" value="{{ branch.pk }}">
+            <select name="range" onchange="this.form.submit()" aria-label="Date range">
+              {% for value, label in date_ranges %}
+                <option value="{{ value }}" {% if value == range_key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <select name="status" onchange="this.form.submit()" aria-label="Status">
+              <option value="all" {% if status == "all" %}selected{% endif %}>All statuses</option>
+              {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+
+        <div class="bm-table-wrap">
+          <table class="bm-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Phone</th>
+                <th>Booked on</th>
+                <th>Appointment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in rows %}
+              <tr>
+                <td>{{ a.name }}</td>
+                <td>{{ a.phone_number|default:"-" }}</td>
+                <td>{{ a.created_at|date:"M j, Y · g:i A" }}</td>
+                <td>{{ a.appointment_date|date:"M j, Y · g:i A" }}</td>
+                <td>
+                  <form method="post" action="{% url 'appointment_update_status' a.pk %}">
+                    {% csrf_token %}
+                    <select name="status" class="bm-status bm-status--{{ a.status }}"
+                            onchange="this.form.submit()">
+                      {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if value == a.status %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="bm-empty">No appointments match these filters.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if has_more %}
+          <a class="bm-more"
+             href="?branch={{ branch.pk }}&range={{ range_key }}&status={{ status }}&limit={{ next_limit }}">View more</a>
+        {% endif %}
+      </div>
+    {% else %}
+      <p class="bm-empty">No branches yet. Open the “Create branch” tab to add your first one.</p>
+    {% endif %}
+  </section>
+
+  <!-- Tab 2: edit branch -->
+  <section class="bm-panel" data-panel="edit" hidden>
+    {% if edit_form %}
+      <h2 class="bm-panel__title">Editing {{ branch.name }}</h2>
+      {% include "crm_dashboard/_branch_form.html" with form=edit_form action="edit" button="Save changes" preview=branch %}
+    {% else %}
+      <p class="bm-empty">There's no branch to edit yet. Create one first.</p>
+    {% endif %}
+  </section>
+
+  <!-- Tab 3: create branch -->
+  <section class="bm-panel" data-panel="create" hidden>
+    <h2 class="bm-panel__title">New branch</h2>
+    {% include "crm_dashboard/_branch_form.html" with form=create_form action="create" button="Create branch" preview=None %}
+  </section>
+</div>
+
+<script>
+(function () {
+  const root = document.getElementById("bm");
+  const tabs = root.querySelectorAll("[data-tab]");
+  const panels = root.querySelectorAll("[data-panel]");
+  const toggle = document.getElementById("bm-branch-toggle");
+  const menu = document.getElementById("bm-menu");
+
+  function show(name) {
+    if (!root.querySelector('[data-panel="' + name + '"]')) name = "current";
+    panels.forEach(p => { p.hidden = p.dataset.panel !== name; });
+    tabs.forEach(t => t.classList.toggle("is-active", t.dataset.tab === name));
+  }
+
+  function closeMenu() {
+    menu.hidden = true;
+    toggle.setAttribute("aria-expanded", "false");
+  }
+
+  tabs.forEach(t => t.addEventListener("click", () => {
+    show(t.dataset.tab);
+    history.replaceState(null, "", "#" + t.dataset.tab);
+  }));
+
+  toggle.addEventListener("click", e => {
+    e.stopPropagation();
+    const willOpen = menu.hidden;
+    menu.hidden = !willOpen;
+    toggle.setAttribute("aria-expanded", String(willOpen));
+  });
+
+  document.addEventListener("click", closeMenu);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
+  window.addEventListener("hashchange", () => { show(location.hash.slice(1)); closeMenu(); });
+
+  // A failed save forces its own tab; otherwise follow the URL hash
+  show(root.dataset.forceTab || location.hash.slice(1) || "current");
+})();
+</script>
+{% endblock %}

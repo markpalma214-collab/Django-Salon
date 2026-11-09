@@ -1,0 +1,292 @@
+/* ===== CRM sidebar: red velvet ===== */
+
+body {
+    margin: 0;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.inner-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.main-menu-bar {
+    --wine: #3a0711;
+    --velvet: #6b0c1b;
+    --crimson: #9e0b1d;
+    --ruby: #c1121f;
+    --gold: #d9aa4b;
+    --gold-light: #f3dca0;
+    --cream: #fbf6f3;
+
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    flex: 0 0 272px;
+    width: 272px;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: 26px 18px 20px;
+    overflow-y: auto;
+    color: var(--cream);
+    background:
+        radial-gradient(circle at 0% 0%, rgba(217, 170, 75, .20), transparent 45%),
+        linear-gradient(180deg, #5a0c1a 0%, var(--velvet) 45%, var(--wine) 100%);
+    border-right: 1px solid rgba(217, 170, 75, .35);
+    box-shadow: 6px 0 24px rgba(58, 7, 17, .25);
+}
+
+/* ----- Logo + name ----- */
+.main-menu-bar .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(217, 170, 75, .3);
+    color: inherit;
+    text-decoration: none;
+}
+
+.main-menu-bar .brand__logo {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    box-sizing: border-box;
+    padding: 4px;
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    background: #fff;
+    /* the logo has a white background */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+}
+
+.main-menu-bar .brand__logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.main-menu-bar .brand__name {
+    display: block;
+    font-family: "Great Vibes", cursive;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--gold-light);
+}
+
+.main-menu-bar .brand__tag {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: rgba(251, 246, 243, .65);
+}
+
+/* ----- Links ----- */
+.main-menu-bar .menu-label {
+    margin: 18px 10px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: rgba(243, 220, 160, .6);
+}
+
+.main-menu-bar .url-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.main-menu-bar .url-bar a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(251, 246, 243, .78);
+    text-decoration: none;
+    transition: background .25s ease, color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+
+.main-menu-bar .url-bar a iconify-icon {
+    flex: 0 0 auto;
+    font-size: 21px;
+    color: var(--gold);
+    transition: color .25s ease;
+}
+
+/* hover turns red; the current page keeps the same look */
+.main-menu-bar .url-bar a:hover,
+.main-menu-bar .url-bar a:focus-visible,
+.main-menu-bar .url-bar a.is-active {
+    outline: none;
+    color: #fff;
+    background: linear-gradient(135deg, var(--ruby), #8f0a1b);
+    transform: translateX(4px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .3), inset 0 0 0 1px rgba(217, 170, 75, .45);
+}
+
+.main-menu-bar .url-bar a:hover iconify-icon,
+.main-menu-bar .url-bar a:focus-visible iconify-icon,
+.main-menu-bar .url-bar a.is-active iconify-icon {
+    color: var(--gold-light);
+}
+
+/* gold marker on the current page */
+.main-menu-bar .url-bar a.is-active::before {
+    content: "";
+    position: absolute;
+    left: -18px;
+    top: 50%;
+    width: 4px;
+    height: 60%;
+    transform: translateY(-50%);
+    border-radius: 0 4px 4px 0;
+    background: var(--gold);
+}
+
+/* ----- Current user + sign out ----- */
+.main-menu-bar .account {
+    margin-top: auto;
+    /* pins it to the bottom; remove to sit under the links */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(217, 170, 75, .3);
+}
+
+.main-menu-bar .account__who {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .07);
+}
+
+.main-menu-bar .account__avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--ruby), var(--velvet));
+    font-weight: 800;
+    color: var(--gold-light);
+}
+
+.main-menu-bar .account__info {
+    min-width: 0;
+}
+
+.main-menu-bar .account__name {
+    display: block;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.main-menu-bar .account__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--gold-light);
+}
+
+.main-menu-bar .account__status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 3px rgba(217, 170, 75, .22);
+}
+
+.main-menu-bar .account form {
+    margin: 0;
+}
+
+.main-menu-bar .signout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid rgba(217, 170, 75, .6);
+    border-radius: 12px;
+    background: transparent;
+    font: inherit;
+    font-weight: 700;
+    color: var(--gold-light);
+    cursor: pointer;
+    transition: background .25s ease, color .25s ease, border-color .25s ease;
+}
+
+.main-menu-bar .signout iconify-icon {
+    font-size: 19px;
+}
+
+.main-menu-bar .signout:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--wine);
+}
+
+/* ----- Small screens: sidebar becomes a block above the page ----- */
+@media (max-width: 860px) {
+    .layout {
+        flex-direction: column;
+    }
+
+    .main-menu-bar {
+        position: static;
+        flex: none;
+        width: auto;
+        height: auto;
+    }
+
+    .main-menu-bar .url-bar {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .main-menu-bar .account {
+        margin-top: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .main-menu-bar .url-bar a {
+        transition: none;
+    }
+
+    .main-menu-bar .url-bar a:hover,
+    .main-menu-bar .url-bar a.is-active {
+        transform: none;
+    }
+}

@@ -1,66 +1,100 @@
-{% extends "appointments/base.html" %}
-
-{% block title %}My Appointments{% endblock %}
+{% extends 'appointments/urltemplate.html' %}
+{% load static %}
 
 {% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'appointments/css/detail.css' %}">
 
-  <!-- Django Messages Rendering -->
-  {% if messages %}
-    <div class="message-container">
-      {% for message in messages %}
-        <div class="alert {{ message.tags }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+<div class="appt-page">
+  <div class="appt-card">
 
-  <div class="row header-row">
-    <h1>My Appointments</h1>
-    <a class="btn" href="{% url 'appointment_create' %}">+ Book new</a>
-  </div>
+    {% if messages %}
+      <div class="appt-messages">
+        {% for message in messages %}
+          <p class="appt-message appt-message--{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
 
-  {% for appointment in appointments %}
-    <div class="card row">
-      <div>
-        <strong>{{ appointment.appointment_date|date:"M d, Y · h:i A" }}</strong><br>
-        {{ appointment.name }} with {{ appointment.staff }}
-        <span class="muted status-badge">
-          ({{ appointment.get_status_display }})
+    {% if appointment %}
+      <header class="appt-header">
+        <p class="appt-eyebrow">YOUR APPOINTMENT</p>
+        <h1 class="appt-title">Michelle's Salon</h1>
+        <span class="appt-status appt-status--{{ appointment.status }}">
+          {{ appointment.get_status_display }}
         </span>
-      </div>
-      
-      <div>
-        <a class="btn secondary" href="{% url 'appointment_detail' appointment.pk %}">View</a>
-        <a class="btn secondary" href="{% url 'appointment_update' appointment.pk %}">Edit</a>
+      </header>
 
-        <!-- STATUS UPDATE FEATURE (Only visible if user is staff) -->
-        {% if can_manage_status %}
-          <form method="post" action="{% url 'appointment_update_status' appointment.pk %}" class="inline-form">
+      <div class="appt-when">
+        <div class="appt-when__item">
+          <span class="appt-label">Date</span>
+          <span class="appt-when__value">{{ appointment.appointment_date|date:"D, M j" }}</span>
+          <span class="appt-when__sub">{{ appointment.appointment_date|date:"Y" }}</span>
+        </div>
+        <div class="appt-when__divider"></div>
+        <div class="appt-when__item">
+          <span class="appt-label">Time</span>
+          <span class="appt-when__value">{{ appointment.appointment_date|time:"g:i A" }}</span>
+        </div>
+      </div>
+
+      <dl class="appt-details">
+        <div class="appt-row">
+          <dt>Branch</dt>
+          <dd>{{ appointment.branch|default:"-" }}</dd>
+        </div>
+        <div class="appt-row">
+          <dt>Technician</dt>
+          <dd>{{ appointment.staff }}</dd>
+        </div>
+        <div class="appt-row">
+          <dt>Service</dt>
+          <dd>{{ appointment.service.service_name|default:"-" }}</dd>
+        </div>
+        <div class="appt-row">
+          <dt>Name</dt>
+          <dd>{{ appointment.name }}</dd>
+        </div>
+        <div class="appt-row">
+          <dt>Phone</dt>
+          <dd>{{ appointment.phone_number|default:"-" }}</dd>
+        </div>
+        <div class="appt-row">
+          <dt>Note</dt>
+          <dd>{{ appointment.note|default:"-" }}</dd>
+        </div>
+      </dl>
+
+      <div class="appt-actions">
+        {% if can_cancel %}
+          <form method="post"
+                action="{% url 'cancel_appointment' appointment.pk %}"
+                onsubmit="return confirm('Cancel this appointment?');">
             {% csrf_token %}
-            <label for="status-{{ appointment.pk }}" class="muted">Status</label>
-            <select id="status-{{ appointment.pk }}" name="status" onchange="this.form.submit()">
-              {% for value, label in status_choices %}
-                <option value="{{ value }}" {% if appointment.status == value %}selected{% endif %}>
-                  {{ label }}
-                </option>
-              {% endfor %}
-            </select>
+            <button type="submit" class="appt-btn appt-btn--outline">Cancel appointment</button>
           </form>
+          {% if not request.user.is_staff %}
+            <p class="appt-hint">Free cancellation until {{ deadline|date:"M j, g:i A" }}</p>
+          {% endif %}
+        {% elif is_active and past_deadline %}
+          <p class="appt-hint">This appointment can no longer be cancelled online (less than 2 hours before it starts).</p>
         {% endif %}
-
-        <!-- CANCEL APPOINTMENT FEATURE -->
-        {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
-          <form method="POST" action="{% url 'cancel_appointment' appointment.pk %}" class="inline-form">
-              {% csrf_token %}
-              <!-- This triggers the views.cancel_appointment function -->
-              <button type="submit" class="btn danger" onclick="return confirm('Are you sure you want to cancel this appointment?');">Cancel</button>
-          </form>
-        {% endif %}
-        
       </div>
-    </div>
-  {% empty %}
-    <p class="muted">No appointments yet.</p>
-  {% endfor %}
+
+    {% else %}
+      <header class="appt-header">
+        <p class="appt-eyebrow">YOUR APPOINTMENT</p>
+        <h1 class="appt-title">Michelle's Salon</h1>
+      </header>
+      <div class="appt-empty">
+        <h2>No upcoming appointment</h2>
+        <p>You don't have an active appointment right now.</p>
+        <a href="{% url 'appointment_create' %}" class="appt-btn appt-btn--solid">Book an appointment</a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
 {% endblock %}

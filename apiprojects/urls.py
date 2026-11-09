@@ -18,5 +18,14 @@ urlpatterns = [
     path("appointments/<int:pk>/status/", views.appointment_update_status, name="appointment_update_status"),
     path('appointment/<int:pk>/cancel/', views.cancel_appointment, name='cancel_appointment'),
     path("appointments/<int:pk>/delete/", views.appointment_delete, name="appointment_delete"),
-    
+    path("crm/branches/", views.branch_management, name="crm_branches"), 
+    path("crm/services/", views.service_list, name="crm_services"),
+    path("crm/services/new/", views.service_form_view, name="crm_service_create"),
+    path("crm/services/<int:pk>/edit/", views.service_form_view, name="crm_service_edit"),
+    path("crm/services/<int:pk>/delete/", views.service_delete, name="crm_service_delete"),
+    path("crm/staff/", views.staff_overview, name="crm_staff"),
+    path("crm/staff/<int:pk>/", views.staff_detail, name="crm_staff_detail"),
+    path("crm/staff/<int:pk>/edit/", views.staff_edit, name="crm_staff_edit"),
+    path("crm/staff/<int:pk>/delete/", views.staff_delete, name="crm_staff_delete"),
+    path("reviews/new/", views.review_create, name="review_create"),
 ]

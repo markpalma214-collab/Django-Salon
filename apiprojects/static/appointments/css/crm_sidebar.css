@@ -1,0 +1,291 @@
+/* ===== CRM sidebar: light, flat, red accent =====
+   Same surface as the content cards (white, 16px radius, soft shadow).
+   Works with admin.css: .layout is flex, and only .inner-content scrolls. */
+
+body {
+    margin: 0;
+}
+
+.inner-content {
+    min-width: 0;
+    min-height: 0;
+}
+
+.main-menu-bar {
+    --crimson: #9e0b1d;
+    --crimson-soft: #fdf2f3;
+    --gold: #d9aa4b;
+    --gold-light: #f3dca0;
+    --ink: #1f2433;
+    --muted: #6b7280;
+    --faint: #9ca3af;
+    --line: #eef0f3;
+
+    flex: 0 0 256px;
+    width: 256px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    margin: 16px 0 16px 16px;
+    padding: 20px 14px 16px;
+    background: #fff;
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px -5px rgba(112, 144, 176, .12),
+        0 4px 10px -2px rgba(112, 144, 176, .07);
+
+    /* scrollable, but with no visible scrollbar */
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.main-menu-bar::-webkit-scrollbar {
+    display: none;
+}
+
+/* ----- Logo + name ----- */
+.main-menu-bar .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    padding: 0 4px 14px;
+    border-bottom: 1px solid var(--line);
+    color: inherit;
+    text-decoration: none;
+}
+
+.main-menu-bar .brand__logo {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.main-menu-bar .brand__logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.main-menu-bar .brand__name {
+    display: block;
+    font-family: "Great Vibes", cursive;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--crimson);
+    white-space: nowrap;
+}
+
+.main-menu-bar .brand__tag {
+    display: block;
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+/* ----- Links ----- */
+.main-menu-bar .menu-label {
+    margin: 14px 12px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+.main-menu-bar .url-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.main-menu-bar .url-bar a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-decoration: none;
+    transition: background-color .2s ease, color .2s ease;
+}
+
+.main-menu-bar .url-bar a iconify-icon {
+    flex: 0 0 auto;
+    font-size: 20px;
+    color: var(--faint);
+    transition: color .2s ease;
+}
+
+/* hover turns red; the current page keeps the same look */
+.main-menu-bar .url-bar a:hover,
+.main-menu-bar .url-bar a:focus-visible,
+.main-menu-bar .url-bar a.is-active {
+    flex: none;
+    /* cancels the old "flex: 1" hover rule in admin.css */
+    outline: none;
+    background: var(--crimson);
+    color: #fff;
+}
+
+.main-menu-bar .url-bar a:hover iconify-icon,
+.main-menu-bar .url-bar a:focus-visible iconify-icon,
+.main-menu-bar .url-bar a.is-active iconify-icon {
+    color: var(--gold-light);
+}
+
+/* ----- Current user + sign out ----- */
+.main-menu-bar .account {
+    margin-top: auto;
+    /* pins it to the bottom; remove to sit right under the links */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+}
+
+.main-menu-bar .account__who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fafafb;
+}
+
+.main-menu-bar .account__avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--crimson);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.main-menu-bar .account__info {
+    min-width: 0;
+}
+
+.main-menu-bar .account__name {
+    display: block;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.main-menu-bar .account__status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.main-menu-bar .account__status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+}
+
+.main-menu-bar .account form {
+    margin: 0;
+}
+
+.main-menu-bar .signout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--muted);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.main-menu-bar .signout iconify-icon {
+    font-size: 18px;
+}
+
+.main-menu-bar .signout:hover {
+    background: var(--crimson-soft);
+    border-color: var(--crimson);
+    color: var(--crimson);
+}
+
+/* ----- Short windows: tighten so it still fits ----- */
+@media (max-height: 600px) {
+    .main-menu-bar .menu-label {
+        display: none;
+    }
+
+    .main-menu-bar .url-bar a {
+        padding: 8px 12px;
+    }
+}
+
+/* ----- Narrow screens: sidebar sits above the page ----- */
+@media (max-width: 860px) {
+    .layout {
+        flex-direction: column;
+    }
+
+    .main-menu-bar {
+        flex: none;
+        width: auto;
+        max-height: 45vh;
+        margin: 12px 12px 0;
+    }
+
+    .main-menu-bar .url-bar {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .main-menu-bar .account {
+        margin-top: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .main-menu-bar .url-bar a,
+    .main-menu-bar .url-bar a iconify-icon,
+    .main-menu-bar .signout {
+        transition: none;
+    }
+}

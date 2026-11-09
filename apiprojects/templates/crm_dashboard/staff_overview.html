@@ -1,0 +1,114 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
+
+{% block title %}Staff Overview{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'appointments/css/services.css' %}">
+<link rel="stylesheet" href="{% static 'appointments/css/staff.css' %}">
+
+<div class="sv st" id="st">
+
+  <header class="sv-top">
+    <div class="sv-heading">
+      <h1>Staff Overview</h1>
+      <p>{{ staff_members|length }} staff member{{ staff_members|length|pluralize }}</p>
+    </div>
+    <div class="sv-tools">
+      <label class="sv-search">
+        <iconify-icon icon="ph:magnifying-glass-duotone"></iconify-icon>
+        <input type="search" id="st-search" placeholder="Search name, location, revenue" autocomplete="off">
+      </label>
+    </div>
+  </header>
+
+  {% for message in messages %}
+    <p class="sv-message sv-message--{{ message.tags }}">{{ message }}</p>
+  {% endfor %}
+
+  {% if staff_members %}
+    <div class="st-grid">
+      {% for s in staff_members %}
+      <article class="st-card" style="--i:{{ forloop.counter0 }}"
+               data-search="{{ s.name }} {{ s.role }} {{ s.status_label }} {{ s.number|default:'' }} {{ s.location|default:'' }} {{ s.avg_rating|floatformat:1 }} {{ s.revenue|floatformat:0 }}">
+
+        <div class="st-head">
+          {% if s.image %}
+            <img class="st-avatar" src="{{ s.image.url }}" alt="{{ s.name }}">
+          {% else %}
+            <span class="st-avatar st-avatar--blank">{{ s.name|first|upper }}</span>
+          {% endif %}
+          <div class="st-id">
+            <h3 class="st-name">{{ s.name }}</h3>
+            <span class="st-role">{{ s.role|default:"Technician" }}</span>
+            <span class="st-badge st-badge--{{ s.status_key }}">{{ s.status_label }}</span>
+          </div>
+        </div>
+
+        <ul class="st-info">
+          <li><iconify-icon icon="ph:phone-duotone"></iconify-icon><span>{{ s.number|default:"No number" }}</span></li>
+          <li><iconify-icon icon="ph:map-pin-duotone"></iconify-icon><span>{{ s.location|default:"No location" }}</span></li>
+          <li><iconify-icon icon="ph:star-duotone"></iconify-icon>
+              <span>Rating: <strong>{% if s.avg_rating %}{{ s.avg_rating|floatformat:1 }}{% else %}N/A{% endif %}</strong></span></li>
+          <li><iconify-icon icon="ph:trend-up-duotone"></iconify-icon>
+              <span>Revenue: <strong>₱{{ s.revenue|floatformat:"-2g" }}</strong></span></li>
+        </ul>
+
+        <div class="sv-actions st-actions">
+          <a href="{% url 'crm_staff_detail' s.pk %}" class="sv-btn sv-btn--view">
+            <iconify-icon icon="ph:eye-duotone"></iconify-icon> View
+          </a>
+          {% if can_manage %}
+            <a href="{% url 'crm_staff_edit' s.pk %}" class="sv-btn sv-btn--edit">
+              <iconify-icon icon="ph:pencil-simple-line-duotone"></iconify-icon> Edit
+            </a>
+            <form method="post" action="{% url 'crm_staff_delete' s.pk %}"
+                  onsubmit="return confirm('Delete {{ s.name|escapejs }}? Their reviews will be deleted too.');">
+              {% csrf_token %}
+              <button type="submit" class="sv-btn sv-btn--delete">
+                <iconify-icon icon="ph:trash-duotone"></iconify-icon> Delete
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="sv-empty" id="st-empty" hidden>
+      <iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon>
+      <p>No staff match your search.</p>
+    </div>
+  {% else %}
+    <div class="sv-empty">
+      <iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon>
+      <p>No staff yet. Add staff members in the Django admin.</p>
+    </div>
+  {% endif %}
+</div>
+
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script>
+(function () {
+  const input = document.getElementById("st-search");
+  const cards = Array.from(document.querySelectorAll(".st-card"));
+  const empty = document.getElementById("st-empty");
+  if (!input || !cards.length) return;
+
+  // lowercase, drop commas and the peso sign, collapse spaces
+  const normalize = text => text.toLowerCase().replace(/[,₱]/g, "").replace(/\s+/g, " ").trim();
+  const haystacks = cards.map(card => normalize(card.dataset.search));
+
+  input.addEventListener("input", () => {
+    const words = normalize(input.value).split(" ").filter(Boolean);
+    let shown = 0;
+    cards.forEach((card, i) => {
+      const match = words.every(word => haystacks[i].includes(word));
+      card.hidden = !match;
+      if (match) shown++;
+    });
+    empty.hidden = shown !== 0;
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
+
+{% block title %}{% if service %}Edit service{% else %}New service{% endif %}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'appointments/css/services.css' %}">
+
+<div class="sv">
+  <a class="sv-back" href="{% url 'crm_services' %}">
+    <iconify-icon icon="ph:arrow-left-bold"></iconify-icon> Back to services
+  </a>
+
+  <div class="sv-heading">
+    <h1>{% if service %}Edit {{ service.service_name }}{% else %}New service{% endif %}</h1>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="sv-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="sv-field">
+      <label for="{{ form.service_name.id_for_label }}">Service name</label>
+      {{ form.service_name }}
+      {{ form.service_name.errors }}
+    </div>
+
+    <div class="sv-field">
+      <label for="{{ form.category.id_for_label }}">Category</label>
+      {{ form.category }}
+      {{ form.category.errors }}
+    </div>
+
+    <div class="sv-field">
+      <label for="{{ form.price.id_for_label }}">Price (₱)</label>
+      {{ form.price }}
+      {{ form.price.errors }}
+    </div>
+
+    <div class="sv-field">
+      <label for="{{ form.image.id_for_label }}">Photo</label>
+      {% if service and service.image %}
+        <img class="sv-preview" src="{{ service.image.url }}" alt="{{ service.service_name }}">
+      {% endif %}
+      {{ form.image }}
+      {{ form.image.errors }}
+    </div>
+
+    <div class="sv-form__actions">
+      <button type="submit" class="sv-create">
+        <iconify-icon icon="ph:check-bold"></iconify-icon> {% if service %}Save changes{% else %}Create service{% endif %}
+      </button>
+      <a href="{% url 'crm_services' %}" class="sv-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+{% endblock %}

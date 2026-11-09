@@ -1,0 +1,103 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ member.name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'appointments/css/services.css' %}">
+<link rel="stylesheet" href="{% static 'appointments/css/staff.css' %}">
+
+<div class="sv st">
+  <a class="sv-back" href="{% url 'crm_staff' %}">
+    <iconify-icon icon="ph:arrow-left-bold"></iconify-icon> Back to staff
+  </a>
+
+  {% for message in messages %}
+    <p class="sv-message sv-message--{{ message.tags }}">{{ message }}</p>
+  {% endfor %}
+
+  <section class="st-profile">
+    <div class="st-head">
+      {% if member.image %}
+        <img class="st-avatar" src="{{ member.image.url }}" alt="{{ member.name }}">
+      {% else %}
+        <span class="st-avatar st-avatar--blank">{{ member.name|first|upper }}</span>
+      {% endif %}
+      <div class="st-id">
+        <h1 class="st-name">{{ member.name }}</h1>
+        <span class="st-role">{{ member.role|default:"Technician" }}</span>
+        <span class="st-badge st-badge--{{ status_key }}">{{ status_label }}</span>
+      </div>
+    </div>
+
+    <ul class="st-info">
+      <li><iconify-icon icon="ph:phone-duotone"></iconify-icon><span>{{ member.number|default:"No number" }}</span></li>
+      <li><iconify-icon icon="ph:map-pin-duotone"></iconify-icon><span>{{ member.location|default:"No location" }}</span></li>
+    </ul>
+
+    {% if can_manage %}
+    <div class="st-profile__actions">
+      <a href="{% url 'crm_staff_edit' member.pk %}" class="sv-btn sv-btn--edit">
+        <iconify-icon icon="ph:pencil-simple-line-duotone"></iconify-icon> Edit
+      </a>
+      <form method="post" action="{% url 'crm_staff_delete' member.pk %}"
+            onsubmit="return confirm('Delete {{ member.name|escapejs }}? Their reviews will be deleted too.');">
+        {% csrf_token %}
+        <button type="submit" class="sv-btn sv-btn--delete">
+          <iconify-icon icon="ph:trash-duotone"></iconify-icon> Delete
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="st-stats">
+    <article class="st-stat" style="--i:0">
+      <iconify-icon icon="ph:calendar-check-duotone"></iconify-icon>
+      <span class="st-stat__label">Total appointments</span>
+      <strong class="st-stat__value">{{ total_appointments }}</strong>
+      <span class="st-stat__sub"></span>
+    </article>
+    <article class="st-stat" style="--i:1">
+      <iconify-icon icon="ph:star-duotone"></iconify-icon>
+      <span class="st-stat__label">Average rating</span>
+      <strong class="st-stat__value">{% if member.avg_rating %}{{ member.avg_rating|floatformat:1 }}{% else %}N/A{% endif %}</strong>
+      <span class="st-stat__sub">{{ member.review_count }} review{{ member.review_count|pluralize }}</span>
+    </article>
+    <article class="st-stat" style="--i:2">
+      <iconify-icon icon="ph:users-three-duotone"></iconify-icon>
+      <span class="st-stat__label">Total clients</span>
+      <strong class="st-stat__value">{{ total_clients }}</strong>
+      <span class="st-stat__sub"></span>
+    </article>
+  </div>
+
+  <h2 class="st-section">
+    <iconify-icon icon="ph:chat-circle-text-duotone"></iconify-icon> Client reviews
+  </h2>
+
+  <div class="st-reviews">
+    {% for r in reviews %}
+    <article class="st-review">
+      <div class="st-review__top">
+        <span class="st-initial">{{ r.user.username|first|upper }}</span>
+        <strong>{{ r.user.get_full_name|default:r.user.username }}</strong>
+        <span class="st-stars" aria-label="{{ r.rating }} out of 5">
+          {% for i in "12345" %}
+            <iconify-icon icon="ph:star-fill" {% if forloop.counter > r.rating %}class="is-off"{% endif %}></iconify-icon>
+          {% endfor %}
+        </span>
+      </div>
+      <p class="st-review__msg">{{ r.message }}</p>
+    </article>
+    {% empty %}
+    <div class="sv-empty">
+      <iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon>
+      <p>No reviews yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+{% endblock %}

@@ -1,12 +1,21 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Appointment, Review, Branch
-
+from .models import Appointment, Review, Branch, Service, Staff
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
 User = get_user_model()
+
+class StaffForm(forms.ModelForm):
+    class Meta:
+        model = Staff
+        fields = ["name", "role", "number", "location", "image", "base_salary", "commission_rate"]
+        widgets = {
+            "image": forms.FileInput(attrs={"accept": "image/*"}),
+            "base_salary": forms.NumberInput(attrs={"step": "0.01", "min": "0"}),
+            "commission_rate": forms.NumberInput(attrs={"step": "0.01", "min": "0"}),
+        }
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -95,3 +104,50 @@ class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = ["rating", "message"]
+
+from django.utils.text import slugify
+
+class BranchForm(forms.ModelForm):
+    class Meta:
+        model = Branch
+        fields = ["name", "address", "phone", "image",
+                  "opening_time", "closing_time", "map_link", "is_active"]
+        widgets = {
+            "image": forms.FileInput(attrs={"accept": "image/*"}),
+            "opening_time": forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
+            "closing_time": forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
+            "map_link": forms.URLInput(attrs={"placeholder": "https://maps.app.goo.gl/..."}),
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data["name"].strip()
+        clash = Branch.objects.filter(slug=slugify(name))
+        if self.instance.pk:
+            clash = clash.exclude(pk=self.instance.pk)
+        if clash.exists():
+            raise forms.ValidationError("A branch with this name already exists.")
+        return name
+
+
+class ServiceForm(forms.ModelForm):
+    class Meta:
+        model = Service
+        fields = ["service_name", "category", "price", "image"]
+        widgets = {
+            "service_name": forms.TextInput(attrs={"placeholder": "e.g. Gel Manicure"}),
+            "price": forms.NumberInput(attrs={"step": "0.01", "min": "0", "placeholder": "0.00"}),
+            "image": forms.FileInput(attrs={"accept": "image/*"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["category"].empty_label = "No category"
+
+    def clean_service_name(self):
+        name = self.cleaned_data["service_name"].strip()
+        clash = Service.objects.filter(slug=slugify(name))
+        if self.instance.pk:
+            clash = clash.exclude(pk=self.instance.pk)
+        if clash.exists():
+            raise forms.ValidationError("A service with this name already exists.")
+        return name
