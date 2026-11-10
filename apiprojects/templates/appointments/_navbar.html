@@ -1,0 +1,34 @@
+{% load static %}
+{% with is_home=request.resolver_match.url_name %}
+<header class="nb">
+    <div class="nb-inner">
+        <a href="{% if is_home == 'homepage' %}#home{% else %}{% url 'homepage' %}{% endif %}" class="nb-brand">
+            <img src="{% if site.logo %}{{ site.logo.url }}{% else %}{% static 'appointments/images/transparent_salon.png' %}{% endif %}" alt="Michelle's Salon logo">
+            <span class="nb-brand__text">
+                <span class="nb-brand__name">{{ site.salon_name|default:"Michelle's salon" }}</span>
+                <span class="nb-brand__tag">{{ site.tagline|default:"NAIL SALON" }}</span>
+            </span>
+        </a>
+
+        <nav class="nb-links" aria-label="Main">
+            <a href="{% if is_home == 'homepage' %}#home{% else %}{% url 'homepage' %}#home{% endif %}">Home</a>
+            <a href="{% if is_home == 'homepage' %}#services{% else %}{% url 'homepage' %}#services{% endif %}">Services</a>
+            <a href="{% if is_home == 'homepage' %}#aboutus{% else %}{% url 'homepage' %}#aboutus{% endif %}">About us</a>
+            <a href="{% if is_home == 'homepage' %}#reviews{% else %}{% url 'homepage' %}#reviews{% endif %}">Reviews</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="nb-actions">
+            {% if request.user.is_authenticated %}
+            <form method="post" action="{% url 'logout' %}" class="nb-logout">
+                {% csrf_token %}
+                <button type="submit"><iconify-icon icon="ph:sign-out-duotone"></iconify-icon><span>Log out</span></button>
+            </form>
+            {% else %}
+            <a href="{% url 'login' %}" class="nb-login"><iconify-icon icon="ph:user-circle-duotone"></iconify-icon><span>Log in</span></a>
+            {% endif %}
+            <a href="{% if is_home == 'homepage' %}#booking{% else %}{% url 'homepage' %}#booking{% endif %}" class="nb-book">Book now</a>
+        </div>
+    </div>
+</header>
+{% endwith %}

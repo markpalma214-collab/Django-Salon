@@ -1,23 +1,598 @@
 {% extends 'appointments/urltemplate.html' %}
+{% load static %}
 {% load socialaccount %}
 
+{% block title %}Sign In · {{ site.salon_name|default:"Michelle's Salon" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    background: linear-gradient(135deg, #fdf6f6 0%, #faecee 100%);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Main Outer Container holding the 2 Dividing Cards */
+  .auth-shell {
+    width: 100%;
+    max-width: 1120px;
+    min-height: 650px;
+    background: #ffffff;
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(90, 15, 22, 0.08);
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.25rem;
+    overflow: hidden;
+  }
+
+  /* --- FIRST CARD (LEFT): Flex Column --- */
+  .auth-card-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2.25rem 2.75rem;
+  }
+
+  .auth-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .auth-panel.is-hidden {
+    display: none;
+  }
+
+  /* Brand Header */
+  .auth-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+  }
+
+  .auth-brand img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+  }
+
+  .auth-brand__text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .auth-brand__name {
+    font-family: 'Great Vibes', cursive;
+    font-size: 1.85rem;
+    color: #1f1617;
+    line-height: 1;
+  }
+
+  .auth-brand__tag {
+    font-size: 0.62rem;
+    letter-spacing: 0.24em;
+    font-weight: 700;
+    color: #8c5a60;
+    margin-top: 2px;
+  }
+
+  /* Title & Subtitle */
+  .auth-headings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 1.6rem;
+  }
+
+  .auth-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f1617;
+    margin: 0 0 0.35rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.9rem;
+    color: #6e6264;
+    margin: 0;
+  }
+
+  /* Google OAuth Button */
+  .auth-social-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .auth-google-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #e6dcde;
+    background: #ffffff;
+    color: #1f1617;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .auth-google-btn:hover {
+    background: #fdf9f9;
+    border-color: #b81d24;
+    box-shadow: 0 4px 14px rgba(184, 29, 36, 0.08);
+  }
+
+  /* "Or" Divider */
+  .auth-or {
+    display: flex;
+    align-items: center;
+    color: #9c8f91;
+    font-size: 0.8rem;
+    margin: 1.35rem 0;
+  }
+
+  .auth-or::before,
+  .auth-or::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #efe7e8;
+  }
+
+  .auth-or span {
+    padding: 0 0.85rem;
+  }
+
+  /* Main Form (Flex Column) */
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+    width: 100%;
+  }
+
+  .auth-field {
+    display: flex;
+    flex-direction: column;
+    background: #f7f4f5;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 0.55rem 0.95rem;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .auth-field:focus-within {
+    background: #ffffff;
+    border-color: #b81d24;
+    box-shadow: 0 0 0 3px rgba(184, 29, 36, 0.1);
+  }
+
+  .auth-field label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #7d6d70;
+    margin-bottom: 2px;
+  }
+
+  .auth-field input {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.93rem;
+    font-weight: 500;
+    color: #1f1617;
+    outline: none;
+    width: 100%;
+    padding: 2px 1.8rem 2px 0;
+  }
+
+  .auth-eye-btn {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #8c7b7e;
+    cursor: pointer;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+
+  .auth-eye-btn:hover {
+    color: #b81d24;
+  }
+
+  /* Remember Me + Forgot Password Row */
+  .auth-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0.2rem 0 0.4rem;
+    font-size: 0.84rem;
+  }
+
+  .auth-remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #3d3234;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .auth-remember input {
+    accent-color: #b81d24;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+
+  .auth-forgot-trigger {
+    background: none;
+    border: none;
+    color: #1f1617;
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .auth-forgot-trigger:hover {
+    color: #b81d24;
+  }
+
+  /* Primary Login Button */
+  .auth-submit-btn {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #b81d24 0%, #6e1116 100%);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(184, 29, 36, 0.24);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+
+  .auth-submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(184, 29, 36, 0.32);
+  }
+
+  /* Alerts */
+  .auth-feedback {
+    padding: 0.75rem 0.95rem;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    margin-bottom: 1rem;
+  }
+
+  .auth-feedback--error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  .auth-feedback--success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+  }
+
+  /* --- SECOND CARD (RIGHT): Customizable Salon Banner --- */
+  .auth-card-right {
+    flex: 1.12;
+    position: relative;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #3b0d11;
+    display: flex;
+    min-height: 560px;
+  }
+
+  .auth-banner-media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .auth-banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(24, 6, 8, 0.65) 0%,
+      rgba(24, 6, 8, 0.18) 50%,
+      rgba(24, 6, 8, 0.72) 100%
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2.25rem;
+    color: #ffffff;
+  }
+
+  .auth-banner-copy {
+    max-width: 350px;
+    margin-left: auto;
+    text-align: right;
+  }
+
+  .auth-banner-copy h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .auth-banner-pill {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 920px) {
+    .auth-shell {
+      flex-direction: column;
+    }
+    .auth-card-left {
+      padding: 1.75rem 1.25rem;
+    }
+    .auth-card-right {
+      min-height: 300px;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>Sign in</h1>
+<section class="auth-wrapper">
+  <div class="auth-shell">
 
-<form method="POST" action="{% url 'account_login' %}">
-  {% csrf_token %}
-  <input type="text" name="login" placeholder="Username or email" required>
-  <input type="password" name="password" placeholder="Password" required>
-  <input type="hidden" name="next" value="{{ request.GET.next }}">
-  <button type="submit">Sign in</button>
-</form>
+    <!-- ================= FIRST CARD (LEFT): FLEX COLUMN AUTH ================= -->
+    <div class="auth-card-left">
 
-<p>or</p>
+      <!-- Shared Salon Logo & Title Header -->
+      <div class="auth-brand">
+        <img src="{% if site.logo %}{{ site.logo.url }}{% else %}{% static 'appointments/images/transparent_salon.png' %}{% endif %}" alt="Michelle's Salon logo">
+        <span class="auth-brand__text">
+          <span class="auth-brand__name">{{ site.salon_name|default:"Michelle's salon" }}</span>
+          <span class="auth-brand__tag">{{ site.tagline|default:"NAIL SALON" }}</span>
+        </span>
+      </div>
 
-<form method="POST" action="{% provider_login_url 'google' %}">
-  {% csrf_token %}
-  <button type="submit">Continue with Google</button>
-</form>
+      <!-- PANEL A: SIGN IN -->
+      <div id="loginPanel" class="auth-panel">
+        <div class="auth-headings">
+          <h1 class="auth-title">Welcome Back</h1>
+          <p class="auth-subtitle">Sign in to book and manage your nail care appointments</p>
+        </div>
 
-<p>No account yet? <a href="{% url 'account_signup' %}">Sign up</a></p>
+        {% if messages %}
+          {% for message in messages %}
+            <div class="auth-feedback {% if message.tags == 'error' %}auth-feedback--error{% else %}auth-feedback--success{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if form.errors %}
+          <div class="auth-feedback auth-feedback--error">
+            Invalid username/email or password. Please try again.
+          </div>
+        {% endif %}
+
+        <!-- Continue with Google (Handles both Sign In & Sign Up) -->
+        <form method="POST" action="{% provider_login_url 'google' %}" class="auth-social-form">
+          {% csrf_token %}
+          <button type="submit" class="auth-google-btn">
+            <iconify-icon icon="flat-color-icons:google" width="20" height="20"></iconify-icon>
+            <span>Continue with Google</span>
+          </button>
+        </form>
+
+        <div class="auth-or"><span>Or</span></div>
+
+        <!-- Username & Password Form -->
+        <form method="POST" action="{% url 'account_login' %}" class="auth-form">
+          {% csrf_token %}
+
+          <div class="auth-field">
+            <label for="id_login">Username or Email</label>
+            <input type="text" id="id_login" name="login" placeholder="Enter your username or email" required>
+          </div>
+
+          <div class="auth-field">
+            <label for="id_password">Password</label>
+            <input type="password" id="id_password" name="password" placeholder="••••••••••••" required>
+            <button type="button" class="auth-eye-btn" id="togglePwdBtn" aria-label="Show password">
+              <iconify-icon icon="ph:eye-duotone" id="togglePwdIcon"></iconify-icon>
+            </button>
+          </div>
+
+          <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+          <div class="auth-meta">
+            <label class="auth-remember">
+              <input type="checkbox" name="remember">
+              <span>Remember me</span>
+            </label>
+            <button type="button" class="auth-forgot-trigger" id="openForgotBtn">
+              Forgot Password?
+            </button>
+          </div>
+
+          <button type="submit" class="auth-submit-btn">Login</button>
+        </form>
+      </div>
+
+      <!-- PANEL B: IN-PAGE FORGOT PASSWORD -->
+      <div id="forgotPanel" class="auth-panel is-hidden">
+        <div class="auth-headings">
+          <h1 class="auth-title">Reset Password</h1>
+          <p class="auth-subtitle">Enter your email address and we'll send you a reset link right here.</p>
+        </div>
+
+        <div id="forgotAlert" class="auth-feedback is-hidden" style="display: none;"></div>
+
+        <form id="forgotPasswordForm" method="POST" action="{% url 'account_reset_password' %}" class="auth-form">
+          {% csrf_token %}
+          <div class="auth-field">
+            <label for="id_reset_email">Email</label>
+            <input type="email" id="id_reset_email" name="email" placeholder="you@example.com" required>
+          </div>
+
+          <button type="submit" class="auth-submit-btn" id="forgotSubmitBtn">
+            Send Reset Link
+          </button>
+
+          <div class="auth-meta" style="justify-content: center; margin-top: 0.5rem;">
+            <button type="button" class="auth-forgot-trigger" id="backToLoginBtn">
+              &larr; Back to Login
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- ================= SECOND CARD (RIGHT): SALON BANNER ================= -->
+    <div class="auth-card-right">
+      {% if site.login_banner %}
+        <img src="{{ site.login_banner.url }}" alt="{{ site.salon_name|default:'Michelle Salon' }} Banner" class="auth-banner-media">
+      {% else %}
+        <img src="{% static 'appointments/images/Gemini_salon.jpg' %}" alt="Michelle's Salon Banner" class="auth-banner-media">
+      {% endif %}
+
+      <div class="auth-banner-overlay">
+        <div class="auth-banner-copy">
+          <h2>{{ site.login_banner_caption|default:"Professional nail care in a relaxing, luxurious environment. Because you deserve to look and feel amazing." }}</h2>
+        </div>
+
+<span class="auth-banner-pill">
+  <img src="{% static 'appointments/images/transparent_salon.png' %}" alt="Logo" style="width: 16px; height: 16px; object-fit: contain;">
+  {{ site.salon_name|default:"Michelle's Salon" }}
+</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // 1. Password visibility toggle
+  const pwdInput = document.getElementById("id_password");
+  const toggleBtn = document.getElementById("togglePwdBtn");
+  const toggleIcon = document.getElementById("togglePwdIcon");
+
+  if (pwdInput && toggleBtn) {
+    toggleBtn.addEventListener("click", function () {
+      const show = pwdInput.type === "password";
+      pwdInput.type = show ? "text" : "password";
+      toggleIcon.setAttribute("icon", show ? "ph:eye-slash-duotone" : "ph:eye-duotone");
+    });
+  }
+
+  // 2. In-Page switch between Login and Forgot Password
+  const loginPanel = document.getElementById("loginPanel");
+  const forgotPanel = document.getElementById("forgotPanel");
+  const openForgotBtn = document.getElementById("openForgotBtn");
+  const backToLoginBtn = document.getElementById("backToLoginBtn");
+
+  if (openForgotBtn && backToLoginBtn) {
+    openForgotBtn.addEventListener("click", function () {
+      loginPanel.classList.add("is-hidden");
+      forgotPanel.classList.remove("is-hidden");
+    });
+
+    backToLoginBtn.addEventListener("click", function () {
+      forgotPanel.classList.add("is-hidden");
+      loginPanel.classList.remove("is-hidden");
+    });
+  }
+
+  // 3. In-Page AJAX submission for Forgot Password
+  const forgotForm = document.getElementById("forgotPasswordForm");
+  const forgotAlert = document.getElementById("forgotAlert");
+  const forgotSubmitBtn = document.getElementById("forgotSubmitBtn");
+
+  if (forgotForm) {
+    forgotForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      forgotSubmitBtn.disabled = true;
+      forgotSubmitBtn.textContent = "Sending...";
+      forgotAlert.style.display = "none";
+
+      try {
+        const response = await fetch(forgotForm.action, {
+          method: "POST",
+          body: new FormData(forgotForm),
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        forgotAlert.style.display = "block";
+        if (response.ok) {
+          forgotAlert.className = "auth-feedback auth-feedback--success";
+          forgotAlert.textContent = "If an account exists with that email, a password reset link has been sent to your inbox.";
+          forgotForm.reset();
+        } else {
+          forgotAlert.className = "auth-feedback auth-feedback--error";
+          forgotAlert.textContent = "Could not process that email address. Please check and try again.";
+        }
+      } catch (err) {
+        forgotAlert.style.display = "block";
+        forgotAlert.className = "auth-feedback auth-feedback--error";
+        forgotAlert.textContent = "Network error. Please try again in a moment.";
+      } finally {
+        forgotSubmitBtn.disabled = false;
+        forgotSubmitBtn.textContent = "Send Reset Link";
+      }
+    });
+  }
+})();
+</script>
 {% endblock %}

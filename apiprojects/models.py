@@ -232,6 +232,12 @@ class SiteSettings(models.Model):
     map_link = models.URLField(blank=True, help_text="Optional Google Maps link for the address.")
     phone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)
+    login_banner = models.ImageField(upload_to="site/", blank=True, null=True)
+    login_banner_caption = models.CharField(
+        max_length=240,
+        blank=True,
+        default="Professional nail care in a relaxing, luxurious environment. Because you deserve to look and feel amazing.",
+    )
 
     class Meta:
         verbose_name = "Site settings"
@@ -258,3 +264,4 @@ class FooterLink(models.Model):
 
     def __str__(self):
         return f"{self.get_column_display()}: {self.label}"
+

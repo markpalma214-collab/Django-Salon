@@ -1,0 +1,74 @@
+{% load static %}
+{% with is_home=request.resolver_match.url_name %}
+<footer class="ft" id="contact">
+    <div class="ft-inner">
+        <div class="ft-grid">
+
+            <div class="ft-brand">
+                <a href="{% if is_home == 'homepage' %}#home{% else %}{% url 'homepage' %}{% endif %}" class="ft-logo">
+                    <img src="{% if site.logo %}{{ site.logo.url }}{% else %}{% static 'appointments/images/transparent_salon.png' %}{% endif %}" alt="Michelle's Salon logo">
+                    <span class="ft-logo__text">
+                        <span class="ft-logo__name">{{ site.salon_name|default:"Michelle's salon" }}</span>
+                        <span class="ft-logo__tag">{{ site.tagline|default:"NAIL SALON" }}</span>
+                    </span>
+                </a>
+                <p class="ft-desc">{{ site.description }}</p>
+
+                <div class="ft-social">
+                    {% if site.facebook_url %}<a href="{{ site.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook page"><iconify-icon icon="ph:facebook-logo-duotone"></iconify-icon></a>{% endif %}
+                    {% if site.instagram_url %}<a href="{{ site.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><iconify-icon icon="ph:instagram-logo-duotone"></iconify-icon></a>{% endif %}
+                    {% if site.tiktok_url %}<a href="{{ site.tiktok_url }}" target="_blank" rel="noopener" aria-label="TikTok"><iconify-icon icon="ph:tiktok-logo-duotone"></iconify-icon></a>{% endif %}
+                    {% if site.email %}<a href="mailto:{{ site.email }}" aria-label="Email us"><iconify-icon icon="ph:envelope-simple-duotone"></iconify-icon></a>{% endif %}
+                </div>
+            </div>
+
+            <nav class="ft-col" aria-label="Services">
+                <h4 class="ft-head">Services</h4>
+                <ul class="ft-list">
+                    {% for l in footer_services %}
+                        <li><a href="{{ l.url }}">{{ l.label }}</a></li>
+                    {% empty %}
+                        {% for c in categories %}
+                            <li><a href="{% if is_home == 'homepage' %}#services{% else %}{% url 'homepage' %}#services{% endif %}">{{ c.name }}</a></li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </nav>
+
+            <nav class="ft-col" aria-label="Company">
+                <h4 class="ft-head">Company</h4>
+                <ul class="ft-list">
+                    {% for l in footer_company %}
+                        <li><a href="{{ l.url }}">{{ l.label }}</a></li>
+                    {% empty %}
+                        <li><a href="{% if is_home == 'homepage' %}#aboutus{% else %}{% url 'homepage' %}#aboutus{% endif %}">About us</a></li>
+                        <li><a href="{% if is_home == 'homepage' %}#reviews{% else %}{% url 'homepage' %}#reviews{% endif %}">Reviews</a></li>
+                        <li><a href="{% if is_home == 'homepage' %}#booking{% else %}{% url 'homepage' %}#booking{% endif %}">Book an appointment</a></li>
+                    {% endfor %}
+                </ul>
+            </nav>
+
+            <div class="ft-col">
+                <h4 class="ft-head">Contact us</h4>
+                <ul class="ft-list ft-contact">
+                    {% if site.address %}
+                    <li>
+                        <iconify-icon icon="ph:map-pin-duotone"></iconify-icon>
+                        {% if site.map_link %}<a href="{{ site.map_link }}" target="_blank" rel="noopener">{{ site.address }}</a>{% else %}<span>{{ site.address }}</span>{% endif %}
+                    </li>
+                    {% endif %}
+                    {% if site.phone %}
+                    <li><iconify-icon icon="ph:phone-duotone"></iconify-icon><a href="tel:{{ site.phone }}">{{ site.phone }}</a></li>
+                    {% endif %}
+                    {% if site.email %}
+                    <li><iconify-icon icon="ph:envelope-simple-duotone"></iconify-icon><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+        </div>
+
+        <p class="ft-bottom">© {% now "Y" %} {{ site.salon_name|default:"Michelle's salon" }}. All rights reserved.</p>
+    </div>
+</footer>
+{% endwith %}

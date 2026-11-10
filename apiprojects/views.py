@@ -46,27 +46,29 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect("home")
+        return redirect("homepage")
 
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            # Respect the "Remember me" checkbox
+            if not request.POST.get("remember"):
+                request.session.set_expiry(0)
             messages.success(request, f"Welcome back, {user.username}!")
 
-            # go back to the page they came from, but only if it's safe
             next_url = request.POST.get("next") or request.GET.get("next")
             if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
-            return redirect("home")
+            return redirect("homepage")
     else:
         form = AuthenticationForm()
 
-    return render(request, "appointments/login.html", {"form": form})
-
-
-
+    return render(request, "appointments/login.html", {
+        "form": form,
+        **_landing_context(),
+    })
 
 
 
@@ -569,7 +571,9 @@ def logout(request):
     return redirect("login")
 
 def login_or_register(request):
-    return render(request, 'appointments/login.html')
+    if request.user.is_authenticated:
+        return redirect("homepage")
+    return render(request, "appointments/login.html", _landing_context())
 
 
 # home
@@ -674,6 +678,7 @@ def appointment_create(request):
         'services': Service.objects.all(),
         'branch': Branch.objects.filter(is_active=True),
         **_reviews_context(),
+        **_landing_context(),
     })
 
 # UPDATE

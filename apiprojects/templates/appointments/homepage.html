@@ -1,364 +1,250 @@
+{% extends 'appointments/urltemplate.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-    <head>
-        <link rel="stylesheet" href="{% static 'appointments/css/style.css' %}">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'appointments/css/reviews.css' %}">
-        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'appointments/css/sections.css' %}">
-        <link rel="stylesheet" href="{% static 'appointments/css/frame.css' %}">
-    </head>
-    <body>
-        <div class="layout">
-                        <header class="nb">
-                <div class="nb-inner">
-                    <a href="#home" class="nb-brand">
-                        <img src="{% if site.logo %}{{ site.logo.url }}{% else %}{% static 'appointments/images/transparent_salon.png' %}{% endif %}" alt="Michelle's Salon logo">
-                        <span class="nb-brand__text">
-                            <span class="nb-brand__name">{{ site.salon_name|default:"Michelle's salon" }}</span>
-                            <span class="nb-brand__tag">{{ site.tagline|default:"NAIL SALON" }}</span>
-                        </span>
+
+{% block content %}
+<div class="backgroundlogo" id="home">
+    <a href="#booking" class="hero-book">
+        <iconify-icon icon="ph:calendar-check-duotone"></iconify-icon>
+        Book now
+        <iconify-icon icon="ph:arrow-right-bold"></iconify-icon>
+    </a>
+</div>
+
+<section class="svc" id="services">
+    <div class="svc-inner">
+        <header class="svc-head">
+            <p class="svc-eyebrow">Our services</p>
+            <h2 class="svc-title">Nail Care, Perfected</h2>
+            <p class="svc-sub">Pick what you need, then book your slot in a few taps.</p>
+        </header>
+
+        {% if categories %}
+        <div class="svc-grid">
+            {% for c in categories %}
+            <article class="svc-card{% if c.tick_popular %} is-popular{% endif %}" style="--i:{{ forloop.counter0 }}">
+                {% if c.tick_popular %}<span class="svc-badge">Most popular</span>{% endif %}
+
+                <div class="svc-card__media">
+                    {% if c.image %}
+                        <img src="{{ c.image.url }}" alt="{{ c.name }}" loading="lazy">
+                    {% else %}
+                        <span class="svc-card__placeholder"><iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon></span>
+                    {% endif %}
+                </div>
+
+                <h3 class="svc-card__title">{{ c.name }}</h3>
+                <p class="svc-card__text">{{ c.description }}</p>
+
+                <div class="svc-card__foot">
+                    {% if c.starting_price %}
+                        <p class="svc-price"><span>From</span> ₱{{ c.starting_price|floatformat:"-2g" }}</p>
+                    {% endif %}
+                    <a href="#booking" class="svc-book">
+                        Book this service <iconify-icon icon="ph:arrow-right-bold"></iconify-icon>
                     </a>
-
-                    <nav class="nb-links" aria-label="Main">
-                        <a href="#home">Home</a>
-                        <a href="#services">Services</a>
-                        <a href="#aboutus">About us</a>
-                        <a href="#reviews">Reviews</a>
-                        <a href="#contact">Contact</a>
-                    </nav>
-
-                    <div class="nb-actions">
-                        {% if request.user.is_authenticated %}
-                        <form method="post" action="{% url 'logout' %}" class="nb-logout">
-                            {% csrf_token %}
-                            <button type="submit"><iconify-icon icon="ph:sign-out-duotone"></iconify-icon><span>Log out</span></button>
-                        </form>
-                        {% else %}
-                        <a href="{% url 'login' %}" class="nb-login"><iconify-icon icon="ph:user-circle-duotone"></iconify-icon><span>Log in</span></a>
-                        {% endif %}
-                        <a href="#booking" class="nb-book">Book now</a>
-                    </div>
                 </div>
-            </header>
-
-            <div class="backgroundlogo" id="home">
-                <a href="#booking" class="hero-book">
-                    <iconify-icon icon="ph:calendar-check-duotone"></iconify-icon>
-                    Book now
-                    <iconify-icon icon="ph:arrow-right-bold"></iconify-icon>
-                </a>
-            </div>
-                           <section class="svc" id="services">
-                <div class="svc-inner">
-                    <header class="svc-head">
-                        <p class="svc-eyebrow">Our services</p>
-                        <h2 class="svc-title">Nail Care, Perfected</h2>
-                        <p class="svc-sub">Pick what you need, then book your slot in a few taps.</p>
-                    </header>
-
-                    {% if categories %}
-                    <div class="svc-grid">
-                        {% for c in categories %}
-                        <article class="svc-card{% if c.tick_popular %} is-popular{% endif %}" style="--i:{{ forloop.counter0 }}">
-                            {% if c.tick_popular %}<span class="svc-badge">Most popular</span>{% endif %}
-
-                            <div class="svc-card__media">
-                                {% if c.image %}
-                                    <img src="{{ c.image.url }}" alt="{{ c.name }}" loading="lazy">
-                                {% else %}
-                                    <span class="svc-card__placeholder"><iconify-icon icon="ph:flower-lotus-duotone"></iconify-icon></span>
-                                {% endif %}
-                            </div>
-
-                            <h3 class="svc-card__title">{{ c.name }}</h3>
-                            <p class="svc-card__text">{{ c.description }}</p>
-
-                            <div class="svc-card__foot">
-                                {% if c.starting_price %}
-                                    <p class="svc-price"><span>From</span> ₱{{ c.starting_price|floatformat:"-2g" }}</p>
-                                {% endif %}
-                                <a href="#booking" class="svc-book">
-                                    Book this service <iconify-icon icon="ph:arrow-right-bold"></iconify-icon>
-                                </a>
-                            </div>
-                        </article>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="svc-empty">Our services are being updated. Please check back soon.</p>
-                    {% endif %}
-                </div>
-            </section>
-            <section class="ab" id="aboutus">
-                <div class="ab-inner">
-                    <div class="ab-grid">
-
-                        <article class="ab-box ab-text" style="--i:0">
-                            <p class="ab-eyebrow">About us</p>
-                            <h2 class="ab-title">{{ about.title }}</h2>
-                            <p class="ab-desc">{{ about.description|linebreaksbr }}</p>
-                        </article>
-
-                        <figure class="ab-box ab-photo" style="--i:1">
-                            {% if about.image %}
-                                <img src="{{ about.image.url }}" alt="Inside Michelle's Salon">
-                            {% else %}
-                                <img src="{% static 'appointments/images/salon.jpg' %}" alt="Inside Michelle's Salon">
-                            {% endif %}
-                        </figure>
-
-                        <article class="ab-box ab-stat" style="--i:2">
-                            <iconify-icon icon="ph:hourglass-medium-duotone"></iconify-icon>
-                            <strong class="ab-stat__num">{{ about.years_of_expertise }}<span>+</span></strong>
-                            <span class="ab-stat__label">{{ about.years_label }}</span>
-                        </article>
-
-                        <article class="ab-box ab-stat" style="--i:3">
-                            <iconify-icon icon="ph:certificate-duotone"></iconify-icon>
-                            <strong class="ab-stat__num">{{ about.certified_stylists }}<span>+</span></strong>
-                            <span class="ab-stat__label">{{ about.certified_label }}</span>
-                        </article>
-
-                        <article class="ab-box ab-stat" style="--i:4">
-                            <iconify-icon icon="ph:sparkle-duotone"></iconify-icon>
-                            <strong class="ab-stat__num">{{ about.premium_treatments }}<span>+</span></strong>
-                            <span class="ab-stat__label">{{ about.treatments_label }}</span>
-                        </article>
-
-                    </div>
-                </div>
-            </section>
-            <section class="booking-section" id="booking"> 
-                <div class="booking-landing">
-                    <div class="head-title">
-                        <h1>Ready to transform your beauty?</h1>
-                        <h3>Book your Appointment</h3>
-                    </div>
-                    <div class="sub-title">
-                        <p>Your beauty matters. shock everyone with your transformation!</p>
-                    </div>
-                    <ul class="badges">
-                         <li>Sanitized Tools</li>
-                        <li>Premium Products</li>
-                        <li>Skilled Technicians</li>
-                        <li>Easy Rescheduling</li>
-                    </ul>
-                </div>
-                <div class="booking-form">
-  <form method="post" action="{% url 'appointment_create' %}" class="booking-form__grid">
-    {% csrf_token %}
-
-    <div class="field full">
-      <label for="{{ form.name.id_for_label }}">Full Name *</label>
-      {{ form.name }}
-      {{ form.name.errors }}
-    </div>
-
-    <div class="field">
-      <label for="{{ form.phone_number.id_for_label }}">Phone *</label>
-      {{ form.phone_number }}
-      {{ form.phone_number.errors }}
-    </div>
-
-    <div class="field">
-      <label for="{{ form.appointment_date.id_for_label }}">Date & Time *</label>
-      {{ form.appointment_date }}
-      {{ form.appointment_date.errors }}
-    </div>
-        <div class="field">
-      <label for="{{ form.service.id_for_label }}">Service *</label>
-      {{ form.service }}
-      {{ form.service.errors }}
-    </div>
-
-    <div class="field">
-      <label for="{{ form.staff.id_for_label }}">Technician *</label>
-      {{ form.staff }}
-      {{ form.staff.errors }}
-    </div>
-    <div class="field full">
-  <label for="{{ form.branch.id_for_label }}">Branch *</label>
-  {{ form.branch }}
-  {{ form.branch.errors }}
-</div>
-
-
-
-    <div class="field full">
-      <label for="{{ form.note.id_for_label }}">Note</label>
-      {{ form.note }}
-      {{ form.note.errors }}
-    </div>
-    <div class="branch">
-        
-    </div>
-
-    <button type="submit" class="full">Book Now</button>
-  </form>
-</div>
-                
-        </section>
-                    <section class="rv" id="reviews">
-                <div class="rv-inner">
-
-                    {% for message in messages %}
-                        <p class="rv-message rv-message--{{ message.tags }}">{{ message }}</p>
-                    {% endfor %}
-
-                    <header class="rv-head">
-                        <p class="rv-eyebrow">Kind words</p>
-                        <h2 class="rv-title">Loved by <span>our clients</span></h2>
-                        <p class="rv-sub">Real words from the guests of Michelle's Salon.</p>
-                        <span class="rv-bar"></span>
-                    </header>
-
-                    {% if testimonials %}
-                    <div class="rv-quotes">
-                        {% for t in testimonials %}
-                        <article class="rv-quote" style="--i:{{ forloop.counter0 }}">
-                            <span class="rv-quote__badge"><iconify-icon icon="ph:quotes-fill"></iconify-icon></span>
-                            <div class="rv-quote__top">
-                                <span class="rv-stars-static" aria-label="{{ t.rating }} out of 5">
-                                    {% for i in "12345" %}<iconify-icon icon="ph:star-fill"{% if forloop.counter > t.rating %} class="is-off"{% endif %}></iconify-icon>{% endfor %}
-                                </span>
-                                {% if t.tag %}<span class="rv-pill">{{ t.tag }}</span>{% endif %}
-                            </div>
-                            <p class="rv-quote__text">“{{ t.quote }}”</p>
-                            <div class="rv-quote__who">
-                                {% if t.photo %}
-                                    <img class="rv-avatar" src="{{ t.photo.url }}" alt="{{ t.author_name }}">
-                                {% else %}
-                                    <span class="rv-avatar">{{ t.author_name|first|upper }}</span>
-                                {% endif %}
-                                <div>
-                                    <strong>{{ t.author_name }}</strong>
-                                    {% if t.author_role %}<span>{{ t.author_role }}</span>{% endif %}
-                                    {% if t.location %}<em>{{ t.location }}</em>{% endif %}
-                                </div>
-                            </div>
-                        </article>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <div class="rv-subhead">
-                        <h3>What guests say about our technicians</h3>
-                        <a href="{% url 'review_create' %}" class="rv-cta">
-                            <iconify-icon icon="ph:pencil-simple-line-duotone"></iconify-icon> Write a review
-                        </a>
-                    </div>
-
-                    {% if client_reviews %}
-                    <div class="rv-marquee{% if client_reviews|length < 4 %} is-static{% endif %}" style="--count:{{ client_reviews|length }}">
-                        <div class="rv-track">
-                            <div class="rv-set">
-                                {% for r in client_reviews %}{% include "appointments/_review_card.html" %}{% endfor %}
-                            </div>
-                            {% if client_reviews|length >= 4 %}
-                            <div class="rv-set" aria-hidden="true">
-                                {% for r in client_reviews %}{% include "appointments/_review_card.html" %}{% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% else %}
-                    <p class="rv-empty">No reviews yet. Be the first to share your experience.</p>
-                    {% endif %}
-
-                </div>
-            </section>
-                        <footer class="ft" id="contact">
-                <div class="ft-inner">
-                    <div class="ft-grid">
-
-                        <div class="ft-brand">
-                            <a href="#home" class="ft-logo">
-                                <img src="{% if site.logo %}{{ site.logo.url }}{% else %}{% static 'appointments/images/transparent_salon.png' %}{% endif %}" alt="Michelle's Salon logo">
-                                <span class="ft-logo__text">
-                                    <span class="ft-logo__name">{{ site.salon_name|default:"Michelle's salon" }}</span>
-                                    <span class="ft-logo__tag">{{ site.tagline|default:"NAIL SALON" }}</span>
-                                </span>
-                            </a>
-                            <p class="ft-desc">{{ site.description }}</p>
-
-                            <div class="ft-social">
-                                {% if site.facebook_url %}<a href="{{ site.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook page"><iconify-icon icon="ph:facebook-logo-duotone"></iconify-icon></a>{% endif %}
-                                {% if site.instagram_url %}<a href="{{ site.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><iconify-icon icon="ph:instagram-logo-duotone"></iconify-icon></a>{% endif %}
-                                {% if site.tiktok_url %}<a href="{{ site.tiktok_url }}" target="_blank" rel="noopener" aria-label="TikTok"><iconify-icon icon="ph:tiktok-logo-duotone"></iconify-icon></a>{% endif %}
-                                {% if site.email %}<a href="mailto:{{ site.email }}" aria-label="Email us"><iconify-icon icon="ph:envelope-simple-duotone"></iconify-icon></a>{% endif %}
-                            </div>
-                        </div>
-
-                        <nav class="ft-col" aria-label="Services">
-                            <h4 class="ft-head">Services</h4>
-                            <ul class="ft-list">
-                                {% for l in footer_services %}
-                                    <li><a href="{{ l.url }}">{{ l.label }}</a></li>
-                                {% empty %}
-                                    {% for c in categories %}<li><a href="#services">{{ c.name }}</a></li>{% endfor %}
-                                {% endfor %}
-                            </ul>
-                        </nav>
-
-                        <nav class="ft-col" aria-label="Company">
-                            <h4 class="ft-head">Company</h4>
-                            <ul class="ft-list">
-                                {% for l in footer_company %}
-                                    <li><a href="{{ l.url }}">{{ l.label }}</a></li>
-                                {% empty %}
-                                    <li><a href="#aboutus">About us</a></li>
-                                    <li><a href="#reviews">Reviews</a></li>
-                                    <li><a href="#booking">Book an appointment</a></li>
-                                {% endfor %}
-                            </ul>
-                        </nav>
-
-                        <div class="ft-col">
-                            <h4 class="ft-head">Contact us</h4>
-                            <ul class="ft-list ft-contact">
-                                {% if site.address %}
-                                <li>
-                                    <iconify-icon icon="ph:map-pin-duotone"></iconify-icon>
-                                    {% if site.map_link %}<a href="{{ site.map_link }}" target="_blank" rel="noopener">{{ site.address }}</a>{% else %}<span>{{ site.address }}</span>{% endif %}
-                                </li>
-                                {% endif %}
-                                {% if site.phone %}
-                                <li><iconify-icon icon="ph:phone-duotone"></iconify-icon><a href="tel:{{ site.phone }}">{{ site.phone }}</a></li>
-                                {% endif %}
-                                {% if site.email %}
-                                <li><iconify-icon icon="ph:envelope-simple-duotone"></iconify-icon><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
-                                {% endif %}
-                            </ul>
-                        </div>
-
-                    </div>
-
-                    <p class="ft-bottom">© {% now "Y" %} {{ site.salon_name|default:"Michelle's salon" }}. All rights reserved.</p>
-                </div>
-            </footer>
-
+            </article>
+            {% endfor %}
         </div>
-        <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
-        <script src="{% static 'appointments/javascript/scrollbar.js' %}"></script>
-                <script>
-        (function () {
-          const links = Array.from(document.querySelectorAll(".nb-links a"));
-          const io = new IntersectionObserver(entries => {
-            entries.forEach(e => {
-              if (!e.isIntersecting) return;
-              links.forEach(l => l.classList.toggle("is-active", l.getAttribute("href") === "#" + e.target.id));
-            });
-          }, { rootMargin: "-45% 0px -50% 0px" });
-          links.forEach(l => {
-            const target = document.querySelector(l.getAttribute("href"));
-            if (target) io.observe(target);
-          });
-        })();
-        </script>
-    </body>
-</html>
+        {% else %}
+        <p class="svc-empty">Our services are being updated. Please check back soon.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="ab" id="aboutus">
+    <div class="ab-inner">
+        <div class="ab-grid">
+            <article class="ab-box ab-text" style="--i:0">
+                <p class="ab-eyebrow">About us</p>
+                <h2 class="ab-title">{{ about.title }}</h2>
+                <p class="ab-desc">{{ about.description|linebreaksbr }}</p>
+            </article>
+
+            <figure class="ab-box ab-photo" style="--i:1">
+                {% if about.image %}
+                    <img src="{{ about.image.url }}" alt="Inside Michelle's Salon">
+                {% else %}
+                    <img src="{% static 'appointments/images/salon.jpg' %}" alt="Inside Michelle's Salon">
+                {% endif %}
+            </figure>
+
+            <article class="ab-box ab-stat" style="--i:2">
+                <iconify-icon icon="ph:hourglass-medium-duotone"></iconify-icon>
+                <strong class="ab-stat__num">{{ about.years_of_expertise }}<span>+</span></strong>
+                <span class="ab-stat__label">{{ about.years_label }}</span>
+            </article>
+
+            <article class="ab-box ab-stat" style="--i:3">
+                <iconify-icon icon="ph:certificate-duotone"></iconify-icon>
+                <strong class="ab-stat__num">{{ about.certified_stylists }}<span>+</span></strong>
+                <span class="ab-stat__label">{{ about.certified_label }}</span>
+            </article>
+
+            <article class="ab-box ab-stat" style="--i:4">
+                <iconify-icon icon="ph:sparkle-duotone"></iconify-icon>
+                <strong class="ab-stat__num">{{ about.premium_treatments }}<span>+</span></strong>
+                <span class="ab-stat__label">{{ about.treatments_label }}</span>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="booking-section" id="booking"> 
+    <div class="booking-landing">
+        <div class="head-title">
+            <h1>Ready to transform your beauty?</h1>
+            <h3>Book your Appointment</h3>
+        </div>
+        <div class="sub-title">
+            <p>Your beauty matters. shock everyone with your transformation!</p>
+        </div>
+        <ul class="badges">
+            <li>Sanitized Tools</li>
+            <li>Premium Products</li>
+            <li>Skilled Technicians</li>
+            <li>Easy Rescheduling</li>
+        </ul>
+    </div>
+    <div class="booking-form">
+        <form method="post" action="{% url 'appointment_create' %}" class="booking-form__grid">
+            {% csrf_token %}
+
+            <div class="field full">
+                <label for="{{ form.name.id_for_label }}">Full Name *</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.phone_number.id_for_label }}">Phone *</label>
+                {{ form.phone_number }}
+                {{ form.phone_number.errors }}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.appointment_date.id_for_label }}">Date & Time *</label>
+                {{ form.appointment_date }}
+                {{ form.appointment_date.errors }}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.service.id_for_label }}">Service *</label>
+                {{ form.service }}
+                {{ form.service.errors }}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.staff.id_for_label }}">Technician *</label>
+                {{ form.staff }}
+                {{ form.staff.errors }}
+            </div>
+
+            <div class="field full">
+                <label for="{{ form.branch.id_for_label }}">Branch *</label>
+                {{ form.branch }}
+                {{ form.branch.errors }}
+            </div>
+
+            <div class="field full">
+                <label for="{{ form.note.id_for_label }}">Note</label>
+                {{ form.note }}
+                {{ form.note.errors }}
+            </div>
+
+            <div class="branch"></div>
+
+            <button type="submit" class="full">Book Now</button>
+        </form>
+    </div>
+</section>
+
+<section class="rv" id="reviews">
+    <div class="rv-inner">
+        {% for message in messages %}
+            <p class="rv-message rv-message--{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+
+        <header class="rv-head">
+            <p class="rv-eyebrow">Kind words</p>
+            <h2 class="rv-title">Loved by <span>our clients</span></h2>
+            <p class="rv-sub">Real words from the guests of Michelle's Salon.</p>
+            <span class="rv-bar"></span>
+        </header>
+
+        {% if testimonials %}
+        <div class="rv-quotes">
+            {% for t in testimonials %}
+            <article class="rv-quote" style="--i:{{ forloop.counter0 }}">
+                <span class="rv-quote__badge"><iconify-icon icon="ph:quotes-fill"></iconify-icon></span>
+                <div class="rv-quote__top">
+                    <span class="rv-stars-static" aria-label="{{ t.rating }} out of 5">
+                        {% for i in "12345" %}<iconify-icon icon="ph:star-fill"{% if forloop.counter > t.rating %} class="is-off"{% endif %}></iconify-icon>{% endfor %}
+                    </span>
+                    {% if t.tag %}<span class="rv-pill">{{ t.tag }}</span>{% endif %}
+                </div>
+                <p class="rv-quote__text">“{{ t.quote }}”</p>
+                <div class="rv-quote__who">
+                    {% if t.photo %}
+                        <img class="rv-avatar" src="{{ t.photo.url }}" alt="{{ t.author_name }}">
+                    {% else %}
+                        <span class="rv-avatar">{{ t.author_name|first|upper }}</span>
+                    {% endif %}
+                    <div>
+                        <strong>{{ t.author_name }}</strong>
+                        {% if t.author_role %}<span>{{ t.author_role }}</span>{% endif %}
+                        {% if t.location %}<em>{{ t.location }}</em>{% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="rv-subhead">
+            <h3>What guests say about our technicians</h3>
+            <a href="{% url 'review_create' %}" class="rv-cta">
+                <iconify-icon icon="ph:pencil-simple-line-duotone"></iconify-icon> Write a review
+            </a>
+        </div>
+
+        {% if client_reviews %}
+        <div class="rv-marquee{% if client_reviews|length < 4 %} is-static{% endif %}" style="--count:{{ client_reviews|length }}">
+            <div class="rv-track">
+                <div class="rv-set">
+                    {% for r in client_reviews %}{% include "appointments/_review_card.html" %}{% endfor %}
+                </div>
+                {% if client_reviews|length >= 4 %}
+                <div class="rv-set" aria-hidden="true">
+                    {% for r in client_reviews %}{% include "appointments/_review_card.html" %}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p class="rv-empty">No reviews yet. Be the first to share your experience.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const links = Array.from(document.querySelectorAll(".nb-links a"));
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.toggle("is-active", l.getAttribute("href") === "#" + e.target.id));
+    });
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  links.forEach(l => {
+    const href = l.getAttribute("href");
+    if (href && href.startsWith("#")) {
+      const target = document.querySelector(href);
+      if (target) io.observe(target);
+    }
+  });
+})();
+</script>
+{% endblock %}
