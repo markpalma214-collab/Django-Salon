@@ -10,39 +10,49 @@
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{% static 'appointments/css/sections.css' %}">
+        <link rel="stylesheet" href="{% static 'appointments/css/frame.css' %}">
     </head>
     <body>
         <div class="layout">
-            <div class="mainbar">
-                <div class="mainlogo" id="home">
-                    <img src="{% static 'appointments/images/transparent_salon.png' %}">
-                    <div class="logopage">
-                    <h2 class="logo">Michelle's salon</h2>
-                    <p>NAIL SALON</p>
+                        <header class="nb">
+                <div class="nb-inner">
+                    <a href="#home" class="nb-brand">
+                        <img src="{% if site.logo %}{{ site.logo.url }}{% else %}{% static 'appointments/images/transparent_salon.png' %}{% endif %}" alt="Michelle's Salon logo">
+                        <span class="nb-brand__text">
+                            <span class="nb-brand__name">{{ site.salon_name|default:"Michelle's salon" }}</span>
+                            <span class="nb-brand__tag">{{ site.tagline|default:"NAIL SALON" }}</span>
+                        </span>
+                    </a>
+
+                    <nav class="nb-links" aria-label="Main">
+                        <a href="#home">Home</a>
+                        <a href="#services">Services</a>
+                        <a href="#aboutus">About us</a>
+                        <a href="#reviews">Reviews</a>
+                        <a href="#contact">Contact</a>
+                    </nav>
+
+                    <div class="nb-actions">
+                        {% if request.user.is_authenticated %}
+                        <form method="post" action="{% url 'logout' %}" class="nb-logout">
+                            {% csrf_token %}
+                            <button type="submit"><iconify-icon icon="ph:sign-out-duotone"></iconify-icon><span>Log out</span></button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="nb-login"><iconify-icon icon="ph:user-circle-duotone"></iconify-icon><span>Log in</span></a>
+                        {% endif %}
+                        <a href="#booking" class="nb-book">Book now</a>
                     </div>
                 </div>
-                <div class="navlink">
-                    <nav>
-                <a href="#home">HOME</a>
-                <a href="#services">SERVICE</a>
-                <a href="#gallery">GALLERY</a>
-                <a href="#pricing">PRICING</a>
-                <a href="#aboutus">ABOUT US</a>
-                <a href="{% url 'staff_list' %}">REVIEWS</a>
-                <a href="#contact">CONTACT</a>
-                <a href="{% url 'appointment_create' %}">BOOK NOW</a>
-                    {% if request.user.is_authenticated %}
-                    <form method="POST" action="{% url 'logout' %}" class="logout-form">
-                    {% csrf_token %}
-                    <button type="submit">LOGOUT</button>
-                    </form>
-                    {% else %}
-                    <a href="#">LOGIN</a>
-                    {% endif %}
-                    </nav>
-                </div>
+            </header>
+
+            <div class="backgroundlogo" id="home">
+                <a href="#booking" class="hero-book">
+                    <iconify-icon icon="ph:calendar-check-duotone"></iconify-icon>
+                    Book now
+                    <iconify-icon icon="ph:arrow-right-bold"></iconify-icon>
+                </a>
             </div>
-            <div class="backgroundlogo"></div>
                            <section class="svc" id="services">
                 <div class="svc-inner">
                     <header class="svc-head">
@@ -84,8 +94,6 @@
                     {% endif %}
                 </div>
             </section>
-
-            </div>
             <section class="ab" id="aboutus">
                 <div class="ab-inner">
                     <div class="ab-grid">
@@ -162,6 +170,11 @@
       {{ form.appointment_date }}
       {{ form.appointment_date.errors }}
     </div>
+        <div class="field">
+      <label for="{{ form.service.id_for_label }}">Service *</label>
+      {{ form.service }}
+      {{ form.service.errors }}
+    </div>
 
     <div class="field">
       <label for="{{ form.staff.id_for_label }}">Technician *</label>
@@ -174,11 +187,7 @@
   {{ form.branch.errors }}
 </div>
 
-    <div class="field">
-      <label for="{{ form.service.id_for_label }}">Service *</label>
-      {{ form.service }}
-      {{ form.service.errors }}
-    </div>
+
 
     <div class="field full">
       <label for="{{ form.note.id_for_label }}">Note</label>
@@ -263,9 +272,93 @@
 
                 </div>
             </section>
+                        <footer class="ft" id="contact">
+                <div class="ft-inner">
+                    <div class="ft-grid">
+
+                        <div class="ft-brand">
+                            <a href="#home" class="ft-logo">
+                                <img src="{% if site.logo %}{{ site.logo.url }}{% else %}{% static 'appointments/images/transparent_salon.png' %}{% endif %}" alt="Michelle's Salon logo">
+                                <span class="ft-logo__text">
+                                    <span class="ft-logo__name">{{ site.salon_name|default:"Michelle's salon" }}</span>
+                                    <span class="ft-logo__tag">{{ site.tagline|default:"NAIL SALON" }}</span>
+                                </span>
+                            </a>
+                            <p class="ft-desc">{{ site.description }}</p>
+
+                            <div class="ft-social">
+                                {% if site.facebook_url %}<a href="{{ site.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook page"><iconify-icon icon="ph:facebook-logo-duotone"></iconify-icon></a>{% endif %}
+                                {% if site.instagram_url %}<a href="{{ site.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><iconify-icon icon="ph:instagram-logo-duotone"></iconify-icon></a>{% endif %}
+                                {% if site.tiktok_url %}<a href="{{ site.tiktok_url }}" target="_blank" rel="noopener" aria-label="TikTok"><iconify-icon icon="ph:tiktok-logo-duotone"></iconify-icon></a>{% endif %}
+                                {% if site.email %}<a href="mailto:{{ site.email }}" aria-label="Email us"><iconify-icon icon="ph:envelope-simple-duotone"></iconify-icon></a>{% endif %}
+                            </div>
+                        </div>
+
+                        <nav class="ft-col" aria-label="Services">
+                            <h4 class="ft-head">Services</h4>
+                            <ul class="ft-list">
+                                {% for l in footer_services %}
+                                    <li><a href="{{ l.url }}">{{ l.label }}</a></li>
+                                {% empty %}
+                                    {% for c in categories %}<li><a href="#services">{{ c.name }}</a></li>{% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </nav>
+
+                        <nav class="ft-col" aria-label="Company">
+                            <h4 class="ft-head">Company</h4>
+                            <ul class="ft-list">
+                                {% for l in footer_company %}
+                                    <li><a href="{{ l.url }}">{{ l.label }}</a></li>
+                                {% empty %}
+                                    <li><a href="#aboutus">About us</a></li>
+                                    <li><a href="#reviews">Reviews</a></li>
+                                    <li><a href="#booking">Book an appointment</a></li>
+                                {% endfor %}
+                            </ul>
+                        </nav>
+
+                        <div class="ft-col">
+                            <h4 class="ft-head">Contact us</h4>
+                            <ul class="ft-list ft-contact">
+                                {% if site.address %}
+                                <li>
+                                    <iconify-icon icon="ph:map-pin-duotone"></iconify-icon>
+                                    {% if site.map_link %}<a href="{{ site.map_link }}" target="_blank" rel="noopener">{{ site.address }}</a>{% else %}<span>{{ site.address }}</span>{% endif %}
+                                </li>
+                                {% endif %}
+                                {% if site.phone %}
+                                <li><iconify-icon icon="ph:phone-duotone"></iconify-icon><a href="tel:{{ site.phone }}">{{ site.phone }}</a></li>
+                                {% endif %}
+                                {% if site.email %}
+                                <li><iconify-icon icon="ph:envelope-simple-duotone"></iconify-icon><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <p class="ft-bottom">© {% now "Y" %} {{ site.salon_name|default:"Michelle's salon" }}. All rights reserved.</p>
+                </div>
+            </footer>
 
         </div>
         <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
         <script src="{% static 'appointments/javascript/scrollbar.js' %}"></script>
+                <script>
+        (function () {
+          const links = Array.from(document.querySelectorAll(".nb-links a"));
+          const io = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+              if (!e.isIntersecting) return;
+              links.forEach(l => l.classList.toggle("is-active", l.getAttribute("href") === "#" + e.target.id));
+            });
+          }, { rootMargin: "-45% 0px -50% 0px" });
+          links.forEach(l => {
+            const target = document.querySelector(l.getAttribute("href"));
+            if (target) io.observe(target);
+          });
+        })();
+        </script>
     </body>
 </html>

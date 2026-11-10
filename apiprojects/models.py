@@ -212,3 +212,49 @@ class SiteTestimonial(models.Model):
 
     def __str__(self):
         return f"{self.author_name} ({'published' if self.is_published else 'draft'})"
+
+class SiteSettings(models.Model):
+    """Brand, footer text and contact details. Only one row is used; edit it in the admin."""
+    salon_name = models.CharField(max_length=80, default="Michelle's salon")
+    tagline = models.CharField(max_length=60, default="NAIL SALON")
+    logo = models.ImageField(upload_to="site/", blank=True,
+                             help_text="Leave empty to use the built-in logo.")
+    description = models.TextField(
+        default="Professional nail care in a relaxing, luxurious environment. "
+                "Because you deserve to look and feel amazing."
+    )
+
+    facebook_url = models.URLField(blank=True)
+    instagram_url = models.URLField(blank=True)
+    tiktok_url = models.URLField(blank=True)
+
+    address = models.CharField(max_length=255, blank=True)
+    map_link = models.URLField(blank=True, help_text="Optional Google Maps link for the address.")
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+
+    class Meta:
+        verbose_name = "Site settings"
+        verbose_name_plural = "Site settings"
+
+    def __str__(self):
+        return "Site settings"
+
+
+class FooterLink(models.Model):
+    COLUMN_CHOICES = [("services", "Services column"), ("company", "Company column")]
+
+    column = models.CharField(max_length=10, choices=COLUMN_CHOICES)
+    label = models.CharField(max_length=60)
+    url = models.CharField(
+        max_length=200,
+        help_text="A section like #services, a page like /staff/, or a full https:// address.",
+    )
+    sort_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["column", "sort_order", "pk"]
+
+    def __str__(self):
+        return f"{self.get_column_display()}: {self.label}"

@@ -19,7 +19,7 @@ from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from .forms import RegisterForm
 from django.db.models import Sum, Count, Q, Avg, ProtectedError
-from .models import Appointment, Service, Staff, Review, Branch, Expense, ServiceCategory, SiteTestimonial, AboutSection    
+from .models import Appointment, Service, Staff, Review, Branch, Expense, ServiceCategory, SiteTestimonial, AboutSection, FooterLink, SiteSettings 
 from .forms import ServiceForm   # add to your existing "from .forms import ..." line
 from django.core.exceptions import PermissionDenied
 
@@ -588,11 +588,16 @@ def homepage(request):
     return render(request, "appointments/homepage.html", context)
 
 def _landing_context():
-    """Our Services and About Us data for the homepage."""
+    """Our Services, About Us, navbar and footer data for the homepage."""
     return {
-        "categories": ServiceCategory.objects.order_by("-tick_popular", "name"),  # popular first
+        "categories": ServiceCategory.objects.order_by("-tick_popular", "name"),
         "about": AboutSection.objects.first() or AboutSection.objects.create(),
+        "site": SiteSettings.objects.first() or SiteSettings.objects.create(),
+        "footer_services": FooterLink.objects.filter(column="services", is_active=True),
+        "footer_company": FooterLink.objects.filter(column="company", is_active=True),
     }
+
+
 
 from django.contrib.auth.decorators import login_required
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Staff, Service, Appointment, Review, Branch, ServiceCategory, SiteTestimonial, AboutSection
+from .models import Staff, Service, Appointment, Review, Branch, ServiceCategory, SiteTestimonial, AboutSection, FooterLink, SiteSettings
 from django import forms
 from django.db import models
 
@@ -58,6 +58,28 @@ class AboutSectionAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-    
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ("Brand", {"fields": ("salon_name", "tagline", "logo", "description")}),
+        ("Social links", {"fields": ("facebook_url", "instagram_url", "tiktok_url")}),
+        ("Contact details", {"fields": ("address", "map_link", "phone", "email")}),
+    )
+
+    def has_add_permission(self, request):
+        return not SiteSettings.objects.exists()      # one row only
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(FooterLink)
+class FooterLinkAdmin(admin.ModelAdmin):
+    list_display = ("label", "column", "url", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    list_filter = ("column", "is_active")
+
+
 admin.site.register(Appointment)
 admin.site.register(Review)
