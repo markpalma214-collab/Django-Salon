@@ -135,13 +135,7 @@ class Appointment(models.Model):
     note = models.TextField(blank=True)
     class Meta:
         ordering = ["appointment_date"]
-        constraints = [
-             models.UniqueConstraint(
-                  fields=["user"],
-                  condition = models.Q(status__in=["pending", 'confirmed']),
-                  name="one_active_appointment_per_user",
-             )
-        ]
+
     def __str__(self):
                 # what it shows on admin panel
                 return f"{self.name} with {self.staff} on {self.appointment_date:%Y-%m-%d %H:%M}"

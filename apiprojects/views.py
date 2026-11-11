@@ -582,10 +582,18 @@ def homepage(request):
     serviceobj = Service.objects.all()
     branch = Branch.objects.filter(is_active=True)
     forms = AppointmentForm()
+    active_appointment = (
+        Appointment.objects
+        .filter(user=request.user, status__in=["pending", "confirmed"])
+        .select_related("staff", "service", "branch")
+        .order_by("appointment_date")
+        .first()
+    )
     context = {
-        "services":serviceobj,
-        "branch":branch,
-        "form":forms
+        "services": serviceobj,
+        "branch": branch,
+        "form": forms,
+        "active_appointment": active_appointment,
     }
     context.update(_reviews_context())
     context.update(_landing_context())
@@ -608,23 +616,48 @@ from django.contrib.auth.decorators import login_required
 # READ (list) - only the logged-in user's own appointments
 @login_required
 def appointment_list(request):
-    appointments = list(
+    user_appointments = list(
         Appointment.objects
         .filter(user=request.user)
         .select_related("staff", "service", "branch")
         .order_by("-appointment_date")
     )
 
-    # Same rules as cancel_appointment, so the button only shows when cancelling would work
-    now = timezone.now()
-    for a in appointments:
-        before_deadline = now < a.appointment_date - timedelta(hours=2)
-        a.can_cancel = a.status in ("pending", "confirmed") and (
-            request.user.is_staff or before_deadline
-        )
+    # Prefer the user's active (pending/confirmed) appointment, or fall back to their most recent one
+    appointment = next(
+        (a for a in user_appointments if a.status in ("pending", "confirmed")),
+        user_appointments[0] if user_appointments else None,
+    )
 
-    return render(request, "appointments/list.html", {"appointments": appointments})
+    can_cancel = False
+    is_active = False
+    past_deadline = False
+    deadline = None
+    staff_stats = {"avg": None, "count": 0}
 
+    if appointment:
+        deadline = appointment.appointment_date - timedelta(hours=2)
+        is_active = appointment.status in ("pending", "confirmed")
+        past_deadline = timezone.now() >= deadline
+        can_cancel = is_active and (request.user.is_staff or not past_deadline)
+
+        if appointment.staff_id:
+            staff_stats = Review.objects.filter(staff_id=appointment.staff_id).aggregate(
+                avg=Avg("rating"),
+                count=Count("id"),
+            )
+
+    context = {
+        "appointment": appointment,
+        "appointments": user_appointments,
+        "can_cancel": can_cancel,
+        "is_active": is_active,
+        "past_deadline": past_deadline,
+        "deadline": deadline,
+        "staff_avg": staff_stats["avg"],
+        "staff_review_count": staff_stats["count"],
+    }
+    return render(request, "appointments/list.html", context)
 
 @staff_member_required
 @require_POST
@@ -658,7 +691,7 @@ def appointment_detail(request, pk):
 # CREATE
 @login_required
 def appointment_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = AppointmentForm(request.POST)
         if form.is_valid():
             appointment = form.save(commit=False)
@@ -666,17 +699,29 @@ def appointment_create(request):
             try:
                 appointment.save()
             except IntegrityError:
-                form.add_error(None, "You already have an active appointment. You can book again once it's completed or cancelled.")
+                form.add_error(
+                    None,
+                    "You already have an active appointment. You can book again once it's completed or cancelled.",
+                )
             else:
                 messages.success(request, "Your appointment has been booked!")
-                return redirect('appointment_list')
+                return redirect("appointment_list")
     else:
         form = AppointmentForm()
 
-    return render(request, 'appointments/homepage.html', {
-        'form': form,
-        'services': Service.objects.all(),
-        'branch': Branch.objects.filter(is_active=True),
+    active_appointment = (
+        Appointment.objects
+        .filter(user=request.user, status__in=["pending", "confirmed"])
+        .select_related("staff", "service", "branch")
+        .order_by("appointment_date")
+        .first()
+    )
+
+    return render(request, "appointments/homepage.html", {
+        "form": form,
+        "services": Service.objects.all(),
+        "branch": Branch.objects.filter(is_active=True),
+        "active_appointment": active_appointment,
         **_reviews_context(),
         **_landing_context(),
     })

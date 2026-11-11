@@ -1,100 +1,671 @@
 {% extends 'appointments/urltemplate.html' %}
 {% load static %}
 
+{% block title %}Your Appointment · Michelle's Salon{% endblock %}
+
 {% block content %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'appointments/css/detail.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
-<div class="appt-page">
-  <div class="appt-card">
+<style>
+  :root {
+    --ms-bg: #FAF6F0;
+    --ms-surface: #FFFFFF;
+    --ms-surface-subtle: #F5EFE6;
+    --ms-border: #E8DFD3;
+    --ms-gold: #ff0202;
+    --ms-gold-soft: rgba(200, 157, 84, 0.14);
+    --ms-burgundy: #8B1A25;
+    --ms-burgundy-hover: #ec081f;
+    --ms-text: #1C1917;
+    --ms-muted: #6B635E;
+    --ms-radius-lg: 16px;
+    --ms-radius-md: 12px;
+    --ms-radius-pill: 9999px;
+    --ms-shadow: 0 16px 40px -12px rgba(28, 25, 23, 0.08), 0 4px 12px -2px rgba(28, 25, 23, 0.04);
+    --ms-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .appt-shell {
+    min-height: calc(100vh - 80px);
+    background-color: var(--ms-bg);
+    padding: 48px 24px 64px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ms-text);
+  }
+
+  .appt-container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .appt-back-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .appt-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ms-burgundy);
+    text-decoration: none;
+    transition: transform 200ms var(--ms-ease), color 200ms var(--ms-ease);
+  }
+
+  .appt-back-link:hover {
+    transform: translateX(-4px);
+    color: var(--ms-burgundy-hover);
+  }
+
+  .appt-page-head {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .appt-page-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 36px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--ms-text);
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .appt-page-sub {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ms-muted);
+    margin: 0;
+  }
+
+  /* Toast / flash messages */
+  .appt-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .appt-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--ms-radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    background: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+  }
+
+  .appt-alert--error {
+    background: #FEF2F2;
+    color: #991B1B;
+    border-color: #FECACA;
+  }
+
+  /* Main Elevated Card */
+  .appt-card {
+    background: var(--ms-surface);
+    border-radius: var(--ms-radius-lg);
+    border: 1px solid var(--ms-border);
+    border-top: 4px solid var(--ms-gold);
+    box-shadow: var(--ms-shadow);
+    padding: 32px;
+  }
+
+  /* Status Top Bar */
+  .appt-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--ms-border);
+    margin-bottom: 24px;
+  }
+
+  .appt-ref {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ms-muted);
+  }
+
+  .appt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--ms-radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .appt-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .appt-badge--pending {
+    background: #FEF3C7;
+    color: #92400E;
+  }
+
+  .appt-badge--confirmed {
+    background: #DCFCE7;
+    color: #166534;
+  }
+
+  .appt-badge--completed {
+    background: #E0E7FF;
+    color: #1E40AF;
+  }
+
+  .appt-badge--cancelled,
+  .appt-badge--no_show {
+    background: #F3F4F6;
+    color: #4B5563;
+  }
+
+  /* Technician Spotlight (Reference: Review Page Card) */
+  .tech-spotlight {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: var(--ms-radius-md);
+    background: var(--ms-bg);
+    border: 1px solid var(--ms-border);
+    transition: background-color 240ms var(--ms-ease), border-color 240ms var(--ms-ease);
+  }
+
+  .tech-spotlight:hover {
+    background: var(--ms-surface-subtle);
+    border-color: var(--ms-gold);
+  }
+
+  .tech-avatar-wrap {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    padding: 4px;
+    background: linear-gradient(135deg, var(--ms-gold), #E5C88E);
+    box-shadow: 0 8px 20px rgba(200, 157, 84, 0.25);
+    margin-bottom: 16px;
+    transition: transform 280ms var(--ms-ease), box-shadow 280ms var(--ms-ease);
+  }
+
+  .tech-spotlight:hover .tech-avatar-wrap {
+    transform: scale(1.04);
+    box-shadow: 0 12px 28px rgba(200, 157, 84, 0.36);
+  }
+
+  .tech-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    background: var(--ms-surface);
+  }
+
+  .tech-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--ms-burgundy);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .tech-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ms-muted);
+    margin: 0 0 4px;
+  }
+
+  .tech-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 700;
+    color: var(--ms-text);
+    margin: 0 0 4px;
+  }
+
+  .tech-role {
+    font-size: 14px;
+    color: var(--ms-muted);
+    margin: 0 0 8px;
+  }
+
+  .tech-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ms-text);
+  }
+
+  .tech-star {
+    color: var(--ms-gold);
+  }
+
+  /* Hover Reveal Pill inside Technician Spotlight */
+  .tech-hover-card {
+    margin-top: 12px;
+    padding: 8px 16px;
+    border-radius: var(--ms-radius-pill);
+    background: var(--ms-surface);
+    border: 1px solid var(--ms-border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ms-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.85;
+    transition: opacity 200ms var(--ms-ease), border-color 200ms var(--ms-ease);
+  }
+
+  .tech-spotlight:hover .tech-hover-card {
+    opacity: 1;
+    border-color: var(--ms-gold);
+  }
+
+  /* Primary Date / Time / Service Highlight Banner */
+  .appt-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .appt-stat-box {
+    padding: 16px;
+    border-radius: var(--ms-radius-md);
+    border: 1px solid var(--ms-border);
+    background: var(--ms-surface);
+  }
+
+  .appt-stat-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ms-muted);
+    margin-bottom: 4px;
+  }
+
+  .appt-stat-value {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ms-text);
+    line-height: 1.4;
+  }
+
+  .appt-stat-sub {
+    display: block;
+    font-size: 13px;
+    color: var(--ms-burgundy);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* Structured Request Details Grid */
+  .appt-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--ms-border);
+    margin-bottom: 24px;
+  }
+
+  .appt-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .appt-detail-item--full {
+    grid-column: 1 / -1;
+  }
+
+  .appt-detail-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ms-muted);
+  }
+
+  .appt-detail-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ms-text);
+    line-height: 1.5;
+  }
+
+  .appt-note-box {
+    padding: 12px 16px;
+    border-radius: var(--ms-radius-md);
+    background: var(--ms-bg);
+    border: 1px solid var(--ms-border);
+    font-size: 14px;
+    color: var(--ms-text);
+    line-height: 1.5;
+  }
+
+  /* Action Footer */
+  .appt-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--ms-border);
+  }
+
+  .appt-btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .appt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: var(--ms-radius-pill);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 200ms var(--ms-ease), border-color 200ms var(--ms-ease), color 200ms var(--ms-ease);
+  }
+
+  .appt-btn--primary {
+    background: var(--ms-burgundy);
+    color: #FFFFFF;
+    border: 1px solid var(--ms-burgundy);
+    flex: 1;
+  }
+
+  .appt-btn--primary:hover {
+    background: var(--ms-burgundy-hover);
+    border-color: var(--ms-burgundy-hover);
+  }
+
+  .appt-btn--outline {
+    background: transparent;
+    color: var(--ms-burgundy);
+    border: 1px solid var(--ms-border);
+    flex: 1;
+  }
+
+  .appt-btn--outline:hover {
+    background: #FEF2F2;
+    border-color: var(--ms-burgundy);
+  }
+
+  .appt-btn.is-loading {
+    opacity: 0.75;
+    pointer-events: none;
+  }
+
+  .appt-policy {
+    font-size: 13px;
+    color: var(--ms-muted);
+    text-align: center;
+    margin: 0;
+  }
+
+  /* Empty State */
+  .appt-empty {
+    text-align: center;
+    padding: 32px 16px;
+  }
+
+  .appt-empty-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--ms-text);
+  }
+
+  .appt-empty-text {
+    font-size: 15px;
+    color: var(--ms-muted);
+    margin: 0 0 24px;
+  }
+
+  @media (max-width: 640px) {
+    .appt-shell {
+      padding: 32px 16px 48px;
+    }
+    .appt-card {
+      padding: 24px 16px;
+    }
+    .appt-schedule-grid {
+      grid-template-columns: 1fr;
+    }
+    .appt-details-grid {
+      grid-template-columns: 1fr;
+    }
+    .appt-page-title {
+      font-size: 28px;
+    }
+  }
+</style>
+
+<div class="appt-shell">
+  <div class="appt-container">
+
+    <div class="appt-back-row">
+      <a href="{% url 'homepage' %}" class="appt-back-link">
+        <iconify-icon icon="ph:arrow-left-bold"></iconify-icon>
+        Back to home
+      </a>
+    </div>
 
     {% if messages %}
-      <div class="appt-messages">
+      <div class="appt-alerts" role="status" aria-live="polite">
         {% for message in messages %}
-          <p class="appt-message appt-message--{{ message.tags }}">{{ message }}</p>
+          <div class="appt-alert {% if 'error' in message.tags %}appt-alert--error{% endif %}">
+            <iconify-icon icon="{% if 'error' in message.tags %}ph:warning-circle-fill{% else %}ph:check-circle-fill{% endif %}"></iconify-icon>
+            <span>{{ message }}</span>
+          </div>
         {% endfor %}
       </div>
     {% endif %}
 
-    {% if appointment %}
-      <header class="appt-header">
-        <p class="appt-eyebrow">YOUR APPOINTMENT</p>
-        <h1 class="appt-title">Michelle's Salon</h1>
-        <span class="appt-status appt-status--{{ appointment.status }}">
-          {{ appointment.get_status_display }}
-        </span>
-      </header>
+    <header class="appt-page-head">
+      <h1 class="appt-page-title">Appointment Summary</h1>
+      <p class="appt-page-sub">Review your scheduled session, technician details, and branch location.</p>
+    </header>
 
-      <div class="appt-when">
-        <div class="appt-when__item">
-          <span class="appt-label">Date</span>
-          <span class="appt-when__value">{{ appointment.appointment_date|date:"D, M j" }}</span>
-          <span class="appt-when__sub">{{ appointment.appointment_date|date:"Y" }}</span>
+    <div class="appt-card">
+      {% if appointment %}
+        <div class="appt-status-bar">
+          <span class="appt-ref">Booking #{{ appointment.pk }} · Booked {{ appointment.created_at|date:"M j, Y" }}</span>
+          <span class="appt-badge appt-badge--{{ appointment.status }}">
+            {{ appointment.get_status_display }}
+          </span>
         </div>
-        <div class="appt-when__divider"></div>
-        <div class="appt-when__item">
-          <span class="appt-label">Time</span>
-          <span class="appt-when__value">{{ appointment.appointment_date|time:"g:i A" }}</span>
-        </div>
-      </div>
 
-      <dl class="appt-details">
-        <div class="appt-row">
-          <dt>Branch</dt>
-          <dd>{{ appointment.branch|default:"-" }}</dd>
-        </div>
-        <div class="appt-row">
-          <dt>Technician</dt>
-          <dd>{{ appointment.staff }}</dd>
-        </div>
-        <div class="appt-row">
-          <dt>Service</dt>
-          <dd>{{ appointment.service.service_name|default:"-" }}</dd>
-        </div>
-        <div class="appt-row">
-          <dt>Name</dt>
-          <dd>{{ appointment.name }}</dd>
-        </div>
-        <div class="appt-row">
-          <dt>Phone</dt>
-          <dd>{{ appointment.phone_number|default:"-" }}</dd>
-        </div>
-        <div class="appt-row">
-          <dt>Note</dt>
-          <dd>{{ appointment.note|default:"-" }}</dd>
-        </div>
-      </dl>
+        <!-- Technician Spotlight Card (Hover Interactive) -->
+        <div class="tech-spotlight">
+          <div class="tech-avatar-wrap">
+            {% if appointment.staff and appointment.staff.image %}
+              <img src="{{ appointment.staff.image.url }}" alt="{{ appointment.staff.name }}" class="tech-avatar">
+            {% else %}
+              <div class="tech-avatar-fallback">
+                {{ appointment.staff.name|first|upper|default:"M" }}
+              </div>
+            {% endif %}
+          </div>
 
-      <div class="appt-actions">
-        {% if can_cancel %}
-          <form method="post"
-                action="{% url 'cancel_appointment' appointment.pk %}"
-                onsubmit="return confirm('Cancel this appointment?');">
-            {% csrf_token %}
-            <button type="submit" class="appt-btn appt-btn--outline">Cancel appointment</button>
-          </form>
-          {% if not request.user.is_staff %}
-            <p class="appt-hint">Free cancellation until {{ deadline|date:"M j, g:i A" }}</p>
+          <p class="tech-eyebrow">Your Assigned Technician</p>
+          <h2 class="tech-name">{{ appointment.staff.name }}</h2>
+          <p class="tech-role">{{ appointment.staff.role|default:"Nail Specialist" }}</p>
+
+          <div class="tech-meta">
+            <span class="tech-star">★</span>
+            {% if staff_avg %}
+              <span>{{ staff_avg|floatformat:1 }} · {{ staff_review_count }} review{{ staff_review_count|pluralize }}</span>
+            {% else %}
+              <span>New specialist</span>
+            {% endif %}
+          </div>
+
+          <div class="tech-hover-card">
+            <span><iconify-icon icon="ph:map-pin-line-bold"></iconify-icon> {{ appointment.branch.name|default:"Main Branch" }}</span>
+            {% if appointment.staff.number %}
+              <span>·</span>
+              <span>{{ appointment.staff.number }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Primary Schedule & Service Highlights -->
+        <div class="appt-schedule-grid">
+          <div class="appt-stat-box">
+            <span class="appt-stat-label">Date</span>
+            <span class="appt-stat-value">{{ appointment.appointment_date|date:"D, M j, Y" }}</span>
+          </div>
+
+          <div class="appt-stat-box">
+            <span class="appt-stat-label">Time</span>
+            <span class="appt-stat-value">{{ appointment.appointment_date|time:"g:i A" }}</span>
+          </div>
+
+          <div class="appt-stat-box">
+            <span class="appt-stat-label">Requested Service</span>
+            <span class="appt-stat-value">{{ appointment.service.service_name|default:"-" }}</span>
+            {% if appointment.service.price %}
+              <span class="appt-stat-sub">₱{{ appointment.service.price|floatformat:2 }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Submitted Form Details -->
+        <div class="appt-details-grid">
+          <div class="appt-detail-item">
+            <span class="appt-detail-label">Client Name</span>
+            <span class="appt-detail-value">{{ appointment.name }}</span>
+          </div>
+
+          <div class="appt-detail-item">
+            <span class="appt-detail-label">Contact Number</span>
+            <span class="appt-detail-value">{{ appointment.phone_number|default:"-" }}</span>
+          </div>
+
+          <div class="appt-detail-item appt-detail-item--full">
+            <span class="appt-detail-label">Salon Branch</span>
+            <span class="appt-detail-value">
+              {{ appointment.branch.name|default:"-" }}
+              {% if appointment.branch.address %}
+                — <span style="color: var(--ms-muted); font-weight: 400;">{{ appointment.branch.address }}</span>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="appt-detail-item appt-detail-item--full">
+            <span class="appt-detail-label">Special Notes</span>
+            <div class="appt-note-box">
+              {{ appointment.note|default:"No additional notes provided for this session." }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions & Cancellation Policy -->
+        <div class="appt-footer">
+          <div class="appt-btn-row">
+            <a href="{% url 'homepage' %}" class="appt-btn appt-btn--primary">
+              Return to Homepage
+            </a>
+
+            {% if can_cancel %}
+              <form method="post"
+                    action="{% url 'cancel_appointment' appointment.pk %}"
+                    id="cancel-appt-form"
+                    style="flex: 1; display: flex;">
+                {% csrf_token %}
+                <button type="submit" class="appt-btn appt-btn--outline" id="cancel-appt-btn" style="width: 100%;">
+                  Cancel Appointment
+                </button>
+              </form>
+            {% endif %}
+          </div>
+
+          {% if can_cancel and not request.user.is_staff %}
+            <p class="appt-policy">
+              Free online cancellation is available until {{ deadline|date:"M j, Y · g:i A" }}.
+            </p>
+          {% elif is_active and past_deadline %}
+            <p class="appt-policy">
+              Online cancellation is closed (less than 2 hours before your scheduled time). Please contact the branch directly.
+            </p>
           {% endif %}
-        {% elif is_active and past_deadline %}
-          <p class="appt-hint">This appointment can no longer be cancelled online (less than 2 hours before it starts).</p>
-        {% endif %}
-      </div>
+        </div>
 
-    {% else %}
-      <header class="appt-header">
-        <p class="appt-eyebrow">YOUR APPOINTMENT</p>
-        <h1 class="appt-title">Michelle's Salon</h1>
-      </header>
-      <div class="appt-empty">
-        <h2>No upcoming appointment</h2>
-        <p>You don't have an active appointment right now.</p>
-        <a href="{% url 'appointment_create' %}" class="appt-btn appt-btn--solid">Book an appointment</a>
-      </div>
-    {% endif %}
+      {% else %}
+        <div class="appt-empty">
+          <h2 class="appt-empty-title">No Active Appointment</h2>
+          <p class="appt-empty-text">You do not have an upcoming reservation scheduled right now.</p>
+          <a href="{% url 'homepage' %}#booking" class="appt-btn appt-btn--primary">
+            Book an Appointment
+          </a>
+        </div>
+      {% endif %}
+    </div>
 
   </div>
 </div>
+
+<script>
+  (function () {
+    const cancelForm = document.getElementById("cancel-appt-form");
+    const cancelBtn = document.getElementById("cancel-appt-btn");
+    if (cancelForm && cancelBtn) {
+      cancelForm.addEventListener("submit", function (e) {
+        if (!confirm("Are you sure you want to cancel this appointment?")) {
+          e.preventDefault();
+          return;
+        }
+        cancelBtn.classList.add("is-loading");
+        cancelBtn.textContent = "Cancelling...";
+      });
+    }
+  })();
+</script>
 {% endblock %}
