@@ -1,0 +1,261 @@
+{% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
+
+{% block title %}Revenue analysis{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'appointments/css/crm_theme.css' %}">
+
+<div class="crm-page" id="rev">
+  <div class="crm-progress" aria-hidden="true"><span></span></div>
+
+  <header class="crm-head">
+    <div>
+      <h1 class="crm-title">Revenue analysis</h1>
+      <p class="crm-subtitle"><strong>{{ branch_name }}</strong> · {{ caption }}</p>
+    </div>
+
+    <form method="get" class="crm-filters" id="rev-filters">
+      <input type="hidden" name="period" value="{{ period_key }}">
+      <div class="crm-field">
+        <label class="crm-label" for="rev-branch">Branch</label>
+        <select class="crm-select" id="rev-branch" name="branch">
+          <option value="">All branches</option>
+          {% for b in branches %}
+            <option value="{{ b.pk }}" {% if selected_branch and b.pk == selected_branch.pk %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if period_key == "year" %}
+      <div class="crm-field">
+        <label class="crm-label" for="rev-year">Year</label>
+        <select class="crm-select" id="rev-year" name="year">
+          {% for y in years %}
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <noscript><button class="crm-btn" type="submit">Apply</button></noscript>
+    </form>
+  </header>
+
+  <div>
+    <nav class="crm-seg" aria-label="Period">
+      {% for p in period_links %}
+        <a href="{{ p.url }}" {% if p.active %}aria-current="page"{% endif %}>{{ p.label }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+
+  <section class="crm-stats crm-stats--5" aria-label="Financial summary">
+    <article class="crm-card">
+      <p class="crm-stat__label">Total revenue</p>
+      <p class="crm-stat__value" data-card>{{ cards.revenue }}</p>
+      <p class="crm-stat__hint">{{ summary.completed_appointments }} completed appointment{{ summary.completed_appointments|pluralize }}</p>
+    </article>
+    <article class="crm-card">
+      <p class="crm-stat__label">Total expenses</p>
+      <p class="crm-stat__value" data-card>{{ cards.expenses }}</p>
+      <p class="crm-stat__hint">Recorded in this period</p>
+    </article>
+    <article class="crm-card">
+      <p class="crm-stat__label">Net profit</p>
+      <p class="crm-stat__value{% if cards.net_is_loss %} is-loss{% endif %}" data-card>{{ cards.net }}</p>
+      <p class="crm-stat__hint">
+        {% if cards.margin %}Margin {{ cards.margin }}{% else %}No revenue in this period{% endif %}
+      </p>
+    </article>
+    <article class="crm-card">
+      <p class="crm-stat__label">Total appointments</p>
+      <p class="crm-stat__value" data-card>{{ cards.appointments }}</p>
+      <p class="crm-stat__hint">Booked, excluding cancelled</p>
+    </article>
+    <article class="crm-card">
+      <p class="crm-stat__label">Loss months</p>
+      <p class="crm-stat__value{% if cards.loss_count %} is-loss{% endif %}" data-card>{{ cards.loss_count }}</p>
+      <p class="crm-stat__hint">
+        {% if cards.loss_count %}
+          <span class="crm-badge crm-badge--loss">Expenses above revenue</span> {{ cards.loss_names }}
+        {% else %}
+          No month in {{ summary.year }} spent more than it earned
+        {% endif %}
+      </p>
+    </article>
+  </section>
+
+  <section class="crm-grid crm-grid--wide-left">
+    <article class="crm-card">
+      <div class="crm-card__head">
+        <h2 class="crm-card__title">Daily revenue</h2>
+        <p class="crm-card__meta">{{ series_label }}</p>
+      </div>
+      <div class="crm-chart" id="daily-wrap">
+        <canvas id="daily-chart" role="img" aria-label="Revenue earned each day"></canvas>
+      </div>
+      <p class="crm-empty" id="daily-empty" hidden>No completed appointments in this period.</p>
+    </article>
+
+    <article class="crm-card">
+      <div class="crm-card__head">
+        <h2 class="crm-card__title">Services by appointment</h2>
+        <p class="crm-card__meta">{{ caption }}</p>
+      </div>
+      <div class="crm-chart" id="services-wrap">
+        <canvas id="services-chart" role="img" aria-label="Share of appointments for each service"></canvas>
+      </div>
+      <p class="crm-empty" id="services-empty" hidden>No bookings in this period.</p>
+    </article>
+  </section>
+
+  <section class="crm-grid crm-grid--even">
+    <article class="crm-card">
+      <div class="crm-card__head">
+        <h2 class="crm-card__title">Clients by review rating</h2>
+        <p class="crm-card__meta">
+          {{ charts.ratings.reviews }} review{{ charts.ratings.reviews|pluralize }}{% if charts.ratings.average %} · average {{ charts.ratings.average }}{% endif %}
+        </p>
+      </div>
+      <div class="crm-chart" id="ratings-wrap">
+        <canvas id="ratings-chart" role="img" aria-label="Number of clients for each star rating"></canvas>
+      </div>
+      <p class="crm-empty" id="ratings-empty" hidden>No reviews yet.</p>
+    </article>
+
+    <article class="crm-card">
+      <div class="crm-card__head">
+        <h2 class="crm-card__title">Highest-rated staff</h2>
+        <p class="crm-card__meta">All time</p>
+      </div>
+      {% if top_staff %}
+      <ol class="crm-rank">
+        {% for s in top_staff %}
+        <li>
+          <span class="crm-rank__pos">{{ forloop.counter }}</span>
+          <span class="crm-avatar">{% if s.image %}<img src="{{ s.image.url }}" alt="">{% else %}{{ s.name|slice:":1"|upper }}{% endif %}</span>
+          <div>
+            <p class="crm-rank__name">{{ s.name }}</p>
+            {% if s.role %}<p class="crm-rank__role">{{ s.role }}</p>{% endif %}
+          </div>
+          <span class="crm-rank__score">{{ s.avg_rating|floatformat:1 }}<small>{{ s.review_count }} review{{ s.review_count|pluralize }}</small></span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="crm-empty">No staff reviews yet.</p>
+      {% endif %}
+    </article>
+  </section>
+
+  <p class="crm-footnote">
+    Expenses are the entries saved under Expense. Staff salaries count only if they are entered there.
+    Review charts cover all time because reviews are not dated.
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ charts|json_script:"rev-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'appointments/css/crm_charts.js' %}"></script>
+<script>
+(function () {
+  var page = document.getElementById('rev');
+  var form = document.getElementById('rev-filters');
+  var data = JSON.parse(document.getElementById('rev-data').textContent);
+
+  var red = CRM.token('--crm-red-600');
+  var line = CRM.token('--crm-line');
+
+  // Show the chart, or its empty message when there is nothing to draw.
+  function toggle(name, hasData) {
+    document.getElementById(name + '-wrap').hidden = !hasData;
+    document.getElementById(name + '-empty').hidden = hasData;
+    return hasData;
+  }
+
+  // ----- Daily revenue (line) -----
+  if (toggle('daily', data.daily.total > 0)) {
+    var many = data.daily.labels.length > 40;
+    new Chart(document.getElementById('daily-chart'), {
+      type: 'line',
+      data: {
+        labels: data.daily.labels,
+        datasets: [{
+          label: 'Revenue',
+          data: data.daily.values,
+          borderColor: red,
+          backgroundColor: CRM.alpha(red, 0.08),
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          spanGaps: false,
+          pointRadius: many ? 0 : 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: red
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function (ctx) { return ' ' + CRM.pesoFull(ctx.parsed.y); } } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { beginAtZero: true, ticks: { callback: function (v) { return CRM.peso(v); } } }
+        }
+      }
+    });
+  }
+
+  // ----- Services by appointment (pie) -----
+  if (toggle('services', data.services.counts.length > 0)) {
+    var colors = data.services.labels.map(function (label, i) {
+      return label === 'Other' ? line : CRM.palette[i % CRM.palette.length];
+    });
+    new Chart(document.getElementById('services-chart'), {
+      type: 'pie',
+      data: {
+        labels: data.services.labels,
+        datasets: [{ data: data.services.counts, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
+      }
+    });
+  }
+
+  // ----- Clients by review rating (bar) -----
+  var hasRatings = data.ratings.counts.some(function (n) { return n > 0; });
+  if (toggle('ratings', hasRatings)) {
+    new Chart(document.getElementById('ratings-chart'), {
+      type: 'bar',
+      data: {
+        labels: data.ratings.labels,
+        datasets: [{ label: 'Clients', data: data.ratings.counts, backgroundColor: red, borderRadius: 8 }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+  }
+
+  // ----- Loading feedback while the page reloads for a new filter -----
+  function busy() { page.classList.add('is-loading'); page.setAttribute('aria-busy', 'true'); }
+  function idle() { page.classList.remove('is-loading'); page.removeAttribute('aria-busy'); }
+
+  form.addEventListener('change', function () { busy(); form.submit(); });
+  document.querySelectorAll('.crm-seg a').forEach(function (a) { a.addEventListener('click', busy); });
+  window.addEventListener('pageshow', idle);   // coming back with the browser's back button
+})();
+</script>
+{% endblock %}

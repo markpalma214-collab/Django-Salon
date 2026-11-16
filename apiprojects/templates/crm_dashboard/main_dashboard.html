@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 <div class="layout">
@@ -32,9 +33,10 @@
       <a href="{% url 'crm_dashboard' %}" class="{% if '/crm/dashboard/' in request.path %}is-active{% endif %}">
         <iconify-icon icon="ph:squares-four-duotone"></iconify-icon><span>Dashboard</span>
       </a>
-      <a href="#">
-        <iconify-icon icon="ph:chart-line-up-duotone"></iconify-icon><span>Revenue Analysis</span>
-      </a>
+<a href="{% url 'crm_revenue' %}" class="{% if '/crm/revenue' in request.path %}is-active{% endif %}">
+  <iconify-icon icon="ph:chart-line-up-duotone"></iconify-icon>
+  Revenue Analysis
+</a>
       <a href="{% url 'crm_branches' %}" class="{% if '/crm/branches/' in request.path %}is-active{% endif %}">
         <iconify-icon icon="ph:storefront-duotone"></iconify-icon><span>Branch Management</span>
       </a>
@@ -43,12 +45,6 @@
       </a>
       <a href="{% url 'crm_services' %}" class="{% if '/crm/services/' in request.path %}is-active{% endif %}">
         <iconify-icon icon="ph:sparkle-duotone"></iconify-icon><span>Services</span>
-      </a>
-      <a href="#">
-        <iconify-icon icon="ph:package-duotone"></iconify-icon><span>Inventory</span>
-      </a>
-      <a href="#">
-        <iconify-icon icon="ph:wrench-duotone"></iconify-icon><span>Tools</span>
       </a>
     </nav>
 

@@ -259,25 +259,109 @@ body {
 }
 
 /* ----- Narrow screens: sidebar sits above the page ----- */
+/* ----- Narrow screens: keep sidebar on the left ----- */
+/* ----- Tablets: keep 185px text sidebar on the left ----- */
 @media (max-width: 860px) {
-    .layout {
-        flex-direction: column;
+    .main-menu-bar {
+        flex: 0 0 185px;
+        width: 185px;
+        margin: 10px 0 10px 10px;
+        padding: 14px 10px;
     }
 
+    .main-menu-bar .brand__name {
+        font-size: 21px;
+    }
+
+    .main-menu-bar .url-bar a {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 860px) {
     .main-menu-bar {
-        flex: none;
-        width: auto;
-        max-height: 45vh;
-        margin: 12px 12px 0;
+        flex: 0 0 185px;
+        width: 185px;
+        margin: 10px 0 10px 10px;
+        padding: 14px 10px;
+    }
+
+    .main-menu-bar .brand {
+        gap: 8px;
+        /* down from 12px */
+    }
+
+    .main-menu-bar .brand__logo {
+        width: 36px;
+        /* down from 44px */
+        height: 36px;
+    }
+
+    .main-menu-bar .brand__name {
+        font-size: 19px;
+        /* fits cleanly in the extra space */
+    }
+
+    .main-menu-bar .url-bar a {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+}
+
+/* ----- Phones (like Samsung Galaxy 360px): slim icon rail on the left ----- */
+@media (max-width: 540px) {
+    .main-menu-bar {
+        flex: 0 0 60px;
+        width: 60px;
+        margin: 8px 0 8px 8px;
+        padding: 12px 6px;
+        align-items: center;
+    }
+
+    .main-menu-bar .brand__name {
+        font-size: 19px;
+        /* fits cleanly in the extra space */
+    }
+
+    .brand__name {
+        font-size: 15px;
+    }
+
+    .main-menu-bar .brand {
+        justify-content: center;
+        padding-bottom: 10px;
+    }
+
+    .main-menu-bar .brand__name,
+    .main-menu-bar .brand__tag,
+    .main-menu-bar .menu-label,
+    .main-menu-bar .account__info {
+        display: none;
     }
 
     .main-menu-bar .url-bar {
-        flex-direction: row;
-        flex-wrap: wrap;
+        width: 100%;
+        align-items: center;
+    }
+
+    .main-menu-bar .url-bar a,
+    .main-menu-bar .signout {
+        justify-content: center;
+        padding: 10px 0;
+        font-size: 0;
+        /* hides text labels while keeping icons */
+        gap: 0;
     }
 
     .main-menu-bar .account {
-        margin-top: 12px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .main-menu-bar .account__who {
+        justify-content: center;
+        padding: 6px;
     }
 }
 

@@ -6,6 +6,79 @@
 
 {% block extra_css %}
 <style>
+  @keyframes auth-dramatic-shake {
+    0%, 100% { transform: translateX(0) scale(1); }
+    12%      { transform: translateX(-12px) scale(1.02); }
+    24%      { transform: translateX(11px) scale(1.02); }
+    36%      { transform: translateX(-9px); }
+    48%      { transform: translateX(8px); }
+    60%      { transform: translateX(-5px); }
+    75%      { transform: translateX(4px); }
+  }
+
+  @keyframes auth-glow-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(158, 11, 29, 0.55); }
+    70%  { box-shadow: 0 0 0 12px rgba(158, 11, 29, 0); }
+    100% { box-shadow: 0 8px 24px rgba(158, 11, 29, 0.22); }
+  }
+
+  .auth-alerts {
+    margin-bottom: 16px;
+  }
+
+  .auth-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .auth-alert--error {
+    background: linear-gradient(135deg, #fdf1f2, #fdf1f2);
+    color: black;
+    border: 1px solid #d9aa4b;
+    animation:
+      auth-dramatic-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both,
+      auth-glow-pulse 1.1s ease-out;
+  }
+
+  .auth-alert--error iconify-icon {
+    font-size: 20px;
+    color: #f3dca0;
+    flex-shrink: 0;
+  }
+
+  /* Also shake the form card itself when an error occurs */
+  .auth-alerts + form {
+    animation: auth-dramatic-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  .crm-portal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 11px 16px;
+  border: 1px solid #e6cdb0;
+  border-radius: 10px;
+  background: #fdf1f2;
+  color: #85091b;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.crm-portal-btn:hover {
+  background: #fbe3e6;
+  border-color: #85091b;
+}
   .auth-wrapper {
     flex: 1;
     display: flex;
@@ -409,13 +482,6 @@
           <p class="auth-subtitle">Sign in to book and manage your nail care appointments</p>
         </div>
 
-        {% if messages %}
-          {% for message in messages %}
-            <div class="auth-feedback {% if message.tags == 'error' %}auth-feedback--error{% else %}auth-feedback--success{% endif %}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        {% endif %}
 
         {% if form.errors %}
           <div class="auth-feedback auth-feedback--error">
@@ -426,21 +492,37 @@
         <!-- Continue with Google (Handles both Sign In & Sign Up) -->
         <form method="POST" action="{% provider_login_url 'google' %}" class="auth-social-form">
           {% csrf_token %}
+          
           <button type="submit" class="auth-google-btn">
             <iconify-icon icon="flat-color-icons:google" width="20" height="20"></iconify-icon>
             <span>Continue with Google</span>
           </button>
         </form>
+              <!-- Admin / Staff CRM Dashboard shortcut -->
+      <a href="{% url 'crm_dashboard' %}" class="crm-portal-btn">
+        <iconify-icon icon="ph:squares-four-duotone"></iconify-icon>
+        Log in as Admin
+      </a>
 
         <div class="auth-or"><span>Or</span></div>
+        {% if messages %}
+          <div class="auth-alerts" role="alert">
+            {% for message in messages %}
+              <div class="auth-alert auth-alert--{{ message.tags }}">
+                <iconify-icon icon="ph:warning-circle-fill"></iconify-icon>
+                <span>{{ message }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
 
-        <!-- Username & Password Form -->
-        <form method="POST" action="{% url 'account_login' %}" class="auth-form">
+     <!-- Username & Password Form -->
+        <form method="POST" action="{% url 'login' %}" class="auth-form">
           {% csrf_token %}
 
           <div class="auth-field">
             <label for="id_login">Username or Email</label>
-            <input type="text" id="id_login" name="login" placeholder="Enter your username or email" required>
+            <input type="text" id="id_login" name="username" placeholder="Enter your username or email" required>
           </div>
 
           <div class="auth-field">

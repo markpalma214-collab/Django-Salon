@@ -173,6 +173,13 @@
     /* move the button left/right */
     --hero-btn-bottom: 34px;
     /* move the button up/down */
+    --hero-band: linear-gradient(180deg, #8a0c1a, #4a0610);
+    /* phones: band behind the Book now button */
+}
+
+/* phones swap the background for this image so the whole artwork shows */
+.hero-img {
+    display: none;
 }
 
 .hero-book {
@@ -398,28 +405,65 @@
 @media (max-width: 900px) {
     .nb-inner {
         grid-template-columns: 1fr auto;
+        column-gap: 12px;
         row-gap: 6px;
         padding: 8px 16px;
     }
 
+    .nb-brand__name {
+        white-space: nowrap;
+    }
+
+    /* second row: pills spread out when they fit and scroll sideways when they do not */
     .nb-links {
         grid-column: 1 / -1;
         grid-row: 2;
-        justify-content: flex-start;
+        justify-content: space-between;
         overflow-x: auto;
         scrollbar-width: none;
+    }
+
+    .nb-links a {
+        flex: 0 0 auto;
+        padding: 11px 12px;
+        font-size: 14px;
     }
 
     .nb-links::-webkit-scrollbar {
         display: none;
     }
-}
 
-@media (max-width: 700px) {
+    /* the navbar is two rows tall here, so anchors need more room */
+    #home,
+    #services,
+    #aboutus,
+    #booking,
+    #reviews,
+    #contact {
+        scroll-margin-top: 124px;
+    }
+
+    /* hero: the whole artwork scaled to the screen, with Book now on a band below it */
+    .backgroundlogo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: auto;
+        background: var(--hero-band);
+    }
+
+    .hero-img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
     .hero-book {
-        right: auto;
-        left: 50%;
-        translate: -50% 0;
+        position: static;
+        translate: none;
+        margin: 16px 16px 20px;
+        padding: 12px 24px;
+        font-size: 15px;
     }
 }
 
@@ -432,6 +476,65 @@
     .nb-logout button span,
     .nb-login span {
         display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .nb-links a {
+        padding: 11px 10px;
+        font-size: 13.5px;
+    }
+}
+
+@media (max-width: 420px) {
+    .nb-inner {
+        column-gap: 8px;
+        padding: 8px 12px;
+    }
+
+    .nb-brand {
+        gap: 8px;
+    }
+
+    .nb-brand img {
+        height: 40px;
+    }
+
+    .nb-brand__name {
+        font-size: 24px;
+    }
+
+    .nb-brand__tag {
+        font-size: 10px;
+        letter-spacing: .28em;
+    }
+
+    .nb-actions {
+        gap: 8px;
+    }
+
+    .nb-logout button,
+    .nb-login {
+        padding: 10px 12px;
+    }
+
+    .nb-book {
+        padding: 10px 14px;
+        font-size: 13.5px;
+    }
+}
+
+@media (max-width: 360px) {
+    .nb-brand img {
+        height: 34px;
+    }
+
+    .nb-brand__name {
+        font-size: 21px;
+    }
+
+    .nb-brand__tag {
+        letter-spacing: .2em;
     }
 }
 

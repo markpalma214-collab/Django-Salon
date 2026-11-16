@@ -745,6 +745,48 @@
     }
 }
 
+/* ===== Phones ===== */
+@media (max-width: 480px) {
+    .rv {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .rv-head {
+        margin-bottom: 40px;
+    }
+
+    .rv-quotes {
+        margin-bottom: 56px;
+    }
+
+    .rv-cta {
+        width: 100%;
+    }
+}
+
+/* ===== Scroll-linked reveals (keyframes live in style.css; older browsers keep "rv-rise") ===== */
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+
+        .rv-eyebrow,
+        .rv-title,
+        .rv-sub,
+        .rv-bar,
+        .rv-subhead {
+            animation: header-rise linear both;
+            animation-timeline: view();
+            animation-range: var(--reveal-range);
+        }
+
+        .rv-quote {
+            animation: fadeup linear both;
+            animation-timeline: view();
+            animation-range: var(--reveal-range);
+        }
+    }
+}
+
 /* ===== Reduced motion: no sliding, scroll by hand instead ===== */
 @media (prefers-reduced-motion: reduce) {
     .rv-track {

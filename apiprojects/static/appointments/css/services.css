@@ -29,6 +29,7 @@
     justify-content: space-between;
     gap: 18px;
     margin-bottom: 28px;
+
 }
 
 .sv-heading h1 {
@@ -503,6 +504,18 @@
 
     .sv-tools {
         justify-content: flex-start;
+    }
+
+    /* Wrap category buttons onto multiple rows instead of hiding them off-screen */
+    .sv-chips {
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
+
+    /* Optional: slightly smaller pill size so more fit per row */
+    .sv-chip {
+        padding: 7px 12px;
+        font-size: 13px;
     }
 }
 

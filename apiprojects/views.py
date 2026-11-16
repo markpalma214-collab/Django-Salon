@@ -22,6 +22,12 @@ from django.db.models import Sum, Count, Q, Avg, ProtectedError
 from .models import Appointment, Service, Staff, Review, Branch, Expense, ServiceCategory, SiteTestimonial, AboutSection, FooterLink, SiteSettings 
 from .forms import ServiceForm   # add to your existing "from .forms import ..." line
 from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse
+from django.utils.http import urlencode
+from .finance import (
+    PERIODS, available_years, build_financial_summary, daily_revenue_series,
+    period_caption, rating_distribution, service_share, top_rated_staff,
+)
 
 
 # ================================================================= #
@@ -44,16 +50,30 @@ def register_view(request):
     return render(request, "appointments/register.html", {"form": form})
 
 
+from django.contrib.auth import get_user_model
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("homepage")
 
     if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
+        identifier = (request.POST.get("username") or "").strip()
+        password = request.POST.get("password") or ""
+
+        # Allow logging in with either username or email (case-insensitive)
+        User = get_user_model()
+        matched_user = User.objects.filter(
+            Q(username__iexact=identifier) | Q(email__iexact=identifier)
+        ).first()
+
+        user = authenticate(
+            request,
+            username=matched_user.username if matched_user else identifier,
+            password=password,
+        )
+
+        if user is not None:
             login(request, user)
-            # Respect the "Remember me" checkbox
             if not request.POST.get("remember"):
                 request.session.set_expiry(0)
             messages.success(request, f"Welcome back, {user.username}!")
@@ -62,14 +82,14 @@ def login_view(request):
             if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect("homepage")
-    else:
-        form = AuthenticationForm()
 
+        messages.error(request, "Invalid username, email, or password. Please try again.")
+
+    form = AuthenticationForm(request)
     return render(request, "appointments/login.html", {
         "form": form,
         **_landing_context(),
     })
-
 
 
 
@@ -89,61 +109,55 @@ def is_staff(user):
 def can_view_dashboard(user):
     return is_owner(user) or is_staff(user)
 
-@user_passes_test(can_view_dashboard, login_url="login")
-def crm_dashboard(request):
-    DASH_RANGES = [
+DASH_RANGES = [
     ("today", "Today"),
     ("week", "Last 7 days"),
     ("month", "Last 30 days"),
     ("year", "Last year"),
     ("all", "All time"),
 ]
-    
-    print(request.user, request.user.is_superuser, request.user.is_staff)
-    if is_owner(request.user):
-        reviews = Review.objects.all() # the owner can see all reviews
-    else:
-        reviews = Review.objects.filter(staff__user=request.user)
-    stats = reviews.aggregate(avg=Avg('rating'), count=Count('id'))
-    avg_rating = stats["avg"] or 0
-    total_reviews = stats["count"]
 
-    appointments = Appointment.objects.select_related("user", "staff", "service").order_by('-appointment_date')
-    completed_appts = appointments.filter(status='completed')
-    clients = completed_appts.aggregate(client=Count("user", distinct=True))["client"] 
-    
-    # get the current date for filtering
-    today = timezone.localdate()
 
-    
-    total_revenue = completed_appts.aggregate(total=Sum('service__price'))['total'] or 0
-    
-    # Calculate weekly revenue using a date range
-    start_of_week = today - timedelta(days=today.weekday())
-    weekly_revenue = completed_appts.filter(appointment_date__date__gte=start_of_week).aggregate(total=Sum('service__price'))['total'] or 0
-    
-    monthly_revenue = completed_appts.filter(
-        appointment_date__year=today.year,
-        appointment_date__month=today.month
-    ).aggregate(total=Sum('service__price'))['total'] or 0
-    
-    daily_revenue = completed_appts.filter(
-        appointment_date__date=today
-    ).aggregate(total=Sum('service__price'))['total'] or 0 
-        # ----- Chart filters -----
-    range_key = request.GET.get("range", "month")
-    if range_key not in dict(DASH_RANGES):
-        range_key = "month"
+def _peso(value):
+    value = value or 0
+    sign = "-" if value < 0 else ""
+    return f"{sign}₱{abs(value):,.2f}"
 
-    branches = Branch.objects.order_by("name")
+
+def _selected_branch(request):
     picked = request.GET.get("branch", "")
-    selected_branch = branches.filter(pk=picked).first() if picked.isdigit() else None
+    return Branch.objects.filter(pk=picked).first() if picked.isdigit() else None
 
+
+def _dashboard_payload(branch, range_key, user):
+    """Everything the dashboard shows for one branch (or all) and one chart range."""
+    today = timezone.localdate()
+    year = today.year
+    branches = list(Branch.objects.order_by("name"))
+
+    # ----- Cards: calendar year, scoped to the selected branch -----
+    year_appts = Appointment.objects.filter(appointment_date__year=year)
+    if branch:
+        year_appts = year_appts.filter(branch=branch)
+    completed = year_appts.filter(status="completed")
+
+    revenue = completed.aggregate(t=Sum("service__price"))["t"] or 0
+    appointments = year_appts.exclude(status="cancelled").count()
+    clients = completed.aggregate(n=Count("user", distinct=True))["n"] or 0
+
+    # Reviews belong to staff. Owners see all of them, staff see their own,
+    # and a branch only counts reviews of staff who work its appointments.
+    reviews = Review.objects.all() if is_owner(user) else Review.objects.filter(staff__user=user)
+    if branch:
+        reviews = reviews.filter(staff__in=Appointment.objects.filter(branch=branch).values("staff"))
+    avg_rating = reviews.aggregate(a=Avg("rating"))["a"]
+
+    # ----- Charts: scoped by the range select -----
     period = {} if range_key == "all" else _range_filter(range_key, today)
     scope = Appointment.objects.filter(**period)
 
-    # ----- Bar chart: every branch, revenue (completed) vs appointments (not cancelled) -----
-    stats = {
+    # Branch comparison always lists every branch; the selected one is highlighted.
+    per_branch = {
         row["branch"]: row
         for row in scope.values("branch").annotate(
             revenue=Sum("service__price", filter=Q(status="completed")),
@@ -152,38 +166,141 @@ def crm_dashboard(request):
     }
     branch_chart = {
         "labels": [b.name for b in branches],
-        "revenue": [float(stats.get(b.pk, {}).get("revenue") or 0) for b in branches],
-        "appointments": [stats.get(b.pk, {}).get("appt_count") or 0 for b in branches],
+        "revenue": [float(per_branch.get(b.pk, {}).get("revenue") or 0) for b in branches],
+        "appointments": [per_branch.get(b.pk, {}).get("appt_count") or 0 for b in branches],
+        "selected": next((i for i, b in enumerate(branches) if branch and b.pk == branch.pk), None),
     }
 
-    # ----- Doughnut: most booked services (one branch if picked, otherwise all) -----
-    service_scope = scope.exclude(status="cancelled").filter(service__isnull=False)
-    if selected_branch:
-        service_scope = service_scope.filter(branch=selected_branch)
-    top_services = (service_scope.values("service__service_name")
-                    .annotate(total=Count("pk")).order_by("-total")[:6])
-    service_chart = {
-        "labels": [s["service__service_name"] for s in top_services],
-        "counts": [s["total"] for s in top_services],
+    # Services by category (one branch if picked, otherwise all)
+    category_scope = scope.exclude(status="cancelled").filter(service__isnull=False)
+    if branch:
+        category_scope = category_scope.filter(branch=branch)
+    rows = list(category_scope.values("service__category__name")
+                .annotate(total=Count("pk")).order_by("-total"))
+    labels = [r["service__category__name"] or "Uncategorized" for r in rows[:6]]
+    counts = [r["total"] for r in rows[:6]]
+    if rows[6:]:
+        labels.append("Other")
+        counts.append(sum(r["total"] for r in rows[6:]))
+
+    return {
+        "cards": {
+            "revenue": _peso(revenue),
+            "appointments": appointments,
+            "clients": clients,
+            "rating": f"{avg_rating:.1f}" if avg_rating else "—",
+        },
+        "year": year,
+        "branch_name": branch.name if branch else "All branches",
+        "range_label": dict(DASH_RANGES)[range_key],
+        "branch_chart": branch_chart,
+        "category_chart": {"labels": labels, "counts": counts},
     }
-    
-    context = {
-        "total_revenue": total_revenue,
-        "monthly_revenue": monthly_revenue,
-        "daily_revenue": daily_revenue,
-        "weekly_revenue": weekly_revenue,
-        "appointments": appointments,
-        "average_rating":avg_rating,
-        "total_reviews": total_reviews,
-        "total_clients": clients,
+
+
+@user_passes_test(can_view_dashboard, login_url="login")
+def crm_dashboard(request):
+    branches = Branch.objects.order_by("name")
+    selected_branch = _selected_branch(request)
+
+    range_key = request.GET.get("range", "month")
+    if range_key not in dict(DASH_RANGES):
+        range_key = "month"
+
+    payload = _dashboard_payload(selected_branch, range_key, request.user)
+
+    # The filters on the page re-fetch this view as JSON, so a change of branch
+    # updates the cards and charts without reloading the page.
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse(payload)
+
+    return render(request, "crm_dashboard/dashboard.html", {
+        **payload,
+        "payload": payload,
         "branches": branches,
         "selected_branch": selected_branch,
         "date_ranges": DASH_RANGES,
         "range_key": range_key,
-        "branch_chart": branch_chart,
-        "service_chart": service_chart,
+    })
+
+
+@login_required
+@user_passes_test(can_view_dashboard, login_url="login")
+def revenue_analysis(request):
+    
+
+    today = timezone.localdate()
+    branches = Branch.objects.order_by("name")
+    selected_branch = _selected_branch(request)
+
+    period_key = request.GET.get("period", "year")      # starts on the annual view
+    if period_key not in dict(PERIODS):
+        period_key = "year"
+
+    years = available_years(today)
+    try:
+        year = int(request.GET.get("year", today.year))
+    except ValueError:
+        year = today.year
+    if year not in years:
+        year = today.year
+
+    summary = build_financial_summary(period_key, today, selected_branch, year)
+
+    # The daily line needs several points, so "Today" shows the last 7 days.
+    if period_key == "today":
+        series_start, series_end = today - timedelta(days=6), today
+        series_label = "Last 7 days"
+    else:
+        series_start, series_end = summary.start, summary.end
+        series_label = period_caption(summary)
+
+    def tab_url(key):
+        params = {"period": key}
+        if selected_branch:
+            params["branch"] = selected_branch.pk
+        if key == "year":
+            params["year"] = year
+        return "?" + urlencode(params)
+
+    margin = summary.profit_margin
+    cards = {
+        "revenue": _peso(summary.total_revenue),
+        "expenses": _peso(summary.total_expenses),
+        "net": _peso(summary.net_profit),
+        "net_is_loss": summary.net_profit < 0,
+        "margin": f"{margin:.1f}%" if margin is not None else None,
+        "appointments": summary.total_appointments,
+        "loss_count": summary.loss_month_count,
+        "loss_names": ", ".join(m.label for m in summary.loss_months),
     }
-    return render(request, 'crm_dashboard/dashboard.html', context)
+
+    ratings = rating_distribution(selected_branch)
+    charts = {
+        "daily": daily_revenue_series(series_start, series_end, today, selected_branch),
+        "services": service_share(summary.start, summary.end, selected_branch),
+        "ratings": ratings,
+    }
+
+    return render(request, "crm_dashboard/revenue_analysis.html", {
+        "summary": summary,
+        "cards": cards,
+        "charts": charts,
+        "caption": period_caption(summary),
+        "series_label": series_label,
+        "top_staff": top_rated_staff(selected_branch),
+        "branches": branches,
+        "selected_branch": selected_branch,
+        "branch_name": selected_branch.name if selected_branch else "All branches",
+        "period_key": period_key,
+        "period_links": [
+            {"key": k, "label": label, "url": tab_url(k), "active": k == period_key}
+            for k, label in PERIODS
+        ],
+        "years": years,
+        "year": year,
+    })
+
 
 @staff_member_required
 def admin_dashboard(request):
@@ -232,7 +349,7 @@ def _range_filter(key, today):
     return {"appointment_date__date": today}
 
 
-@staff_member_required
+@user_passes_test(can_view_dashboard, login_url="login")
 def branch_management(request):
 
     
@@ -248,6 +365,8 @@ def branch_management(request):
     force_tab = ""   # which tab to open when the page reloads after a failed save
 
     if request.method == "POST":
+        if not is_owner(request.user):
+            raise PermissionDenied
         action = request.POST.get("action")
 
         if action == "edit" and branch:
@@ -329,7 +448,7 @@ def branch_management(request):
 
 # ===================== CRM: services =====================
 
-@staff_member_required
+@user_passes_test(can_view_dashboard, login_url="login")
 def service_list(request):
     services = list(
         Service.objects.select_related("category")
@@ -361,9 +480,9 @@ def service_list(request):
         "total": len(services),
     })
 
-
-@staff_member_required
+@user_passes_test(can_view_dashboard, login_url="login")
 def service_form_view(request, pk=None):
+    
     """One view for both creating (no pk) and editing (pk)."""
     service = get_object_or_404(Service, pk=pk) if pk else None
     form = ServiceForm(request.POST or None, request.FILES or None, instance=service)
@@ -376,7 +495,7 @@ def service_form_view(request, pk=None):
     return render(request, "crm_dashboard/service_form.html", {"form": form, "service": service})
 
 
-@staff_member_required
+@user_passes_test(can_view_dashboard, login_url="login")
 @require_POST
 def service_delete(request, pk):
     service = get_object_or_404(Service, pk=pk)
@@ -526,6 +645,7 @@ def review_create(request):
         "staff_members": staff_members,
         "form": form,
         "selected_id": selected_id,
+        **_landing_context(),
     })
 
 #==========================================================
@@ -576,24 +696,26 @@ def login_or_register(request):
     return render(request, "appointments/login.html", _landing_context())
 
 
-# home
-@login_required()
 def homepage(request):
     serviceobj = Service.objects.all()
     branch = Branch.objects.filter(is_active=True)
     forms = AppointmentForm()
-    active_appointment = (
-        Appointment.objects
-        .filter(user=request.user, status__in=["pending", "confirmed"])
-        .select_related("staff", "service", "branch")
-        .order_by("appointment_date")
-        .first()
-    )
+
+    if request.user.is_authenticated:
+        active_appointments = (
+            Appointment.objects
+            .filter(user=request.user, status__in=["pending", "confirmed"])
+            .select_related("staff", "service", "branch")
+            .order_by("appointment_date")
+        )
+    else:
+        active_appointments = Appointment.objects.none()
+
     context = {
         "services": serviceobj,
         "branch": branch,
         "form": forms,
-        "active_appointment": active_appointment,
+        "active_appointments": active_appointments,
     }
     context.update(_reviews_context())
     context.update(_landing_context())
@@ -659,12 +781,12 @@ def appointment_list(request):
     }
     return render(request, "appointments/list.html", context)
 
-@staff_member_required
+@user_passes_test(can_view_dashboard, login_url="login")
 @require_POST
 def appointment_update_status(request, pk):
     appointment = get_object_or_404(Appointment, pk=pk)
     new_status = request.POST.get('status')
-    
+
     valid_statuses = [choice[0] for choice in Appointment.STATUS_CHOICES]
     if new_status in valid_statuses:
         appointment.status = new_status
@@ -672,14 +794,12 @@ def appointment_update_status(request, pk):
         messages.success(request, f"Status for {appointment.name} updated to {appointment.get_status_display()}.")
     else:
         messages.error(request, "Invalid status selected.")
-        
-    # FIX: Send the user back to the exact URL they submitted the form from
+
     previous_page = request.META.get('HTTP_REFERER')
     if previous_page:
         return redirect(previous_page)
-        
-    # Fallback just in case the browser blocks referrer data
-    return redirect('admin_dashboard')
+
+    return redirect('crm_branches')
 
 
 # READ (single)
@@ -777,8 +897,8 @@ def cancel_appointment(request, pk):
     else:
         messages.error(request, "This appointment can't be cancelled.")
 
-    if request.user.is_staff:
-        return redirect("admin_dashboard")
+    if "/crm/" in (request.META.get("HTTP_REFERER") or ""):
+        return redirect("crm_branches")
     return redirect("appointment_list")
 
 # reviewing form

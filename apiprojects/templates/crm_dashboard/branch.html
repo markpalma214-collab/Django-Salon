@@ -87,25 +87,41 @@
           </form>
         </div>
 
-        <div class="bm-table-wrap">
+<div class="bm-table-wrap">
           <table class="bm-table">
             <thead>
               <tr>
                 <th>Client</th>
                 <th>Phone</th>
+                <th>Service</th>
                 <th>Booked on</th>
                 <th>Appointment</th>
+                <th>Note</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {% for a in rows %}
               <tr>
-                <td>{{ a.name }}</td>
-                <td>{{ a.phone_number|default:"-" }}</td>
-                <td>{{ a.created_at|date:"M j, Y · g:i A" }}</td>
-                <td>{{ a.appointment_date|date:"M j, Y · g:i A" }}</td>
-                <td>
+                <td data-label="Client">{{ a.name }}</td>
+                <td data-label="Phone">{{ a.phone_number|default:"-" }}</td>
+                <td data-label="Service">{{ a.service.service_name|default:"-" }}</td>
+                <td data-label="Booked on">{{ a.created_at|date:"M j, Y · g:i A" }}</td>
+                <td data-label="Appointment">{{ a.appointment_date|date:"M j, Y · g:i A" }}</td>
+                <td data-label="Note">
+                  {% if a.note %}
+                    <button type="button"
+                            class="bm-note-btn"
+                            data-client="{{ a.name }}"
+                            data-service="{{ a.service.service_name|default:'Appointment' }}"
+                            data-note="{{ a.note }}">
+                      View note
+                    </button>
+                  {% else %}
+                    <span class="bm-no-note">—</span>
+                  {% endif %}
+                </td>
+                <td data-label="Status">
                   <form method="post" action="{% url 'appointment_update_status' a.pk %}">
                     {% csrf_token %}
                     <select name="status" class="bm-status bm-status--{{ a.status }}"
@@ -118,7 +134,7 @@
                 </td>
               </tr>
               {% empty %}
-              <tr><td colspan="5" class="bm-empty">No appointments match these filters.</td></tr>
+              <tr><td colspan="7" class="bm-empty">No appointments match these filters.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -149,6 +165,19 @@
     <h2 class="bm-panel__title">New branch</h2>
     {% include "crm_dashboard/_branch_form.html" with form=create_form action="create" button="Create branch" preview=None %}
   </section>
+  <!-- Client note modal -->
+<div class="bm-modal" id="bm-note-modal" hidden role="dialog" aria-modal="true" aria-labelledby="bm-modal-title">
+  <div class="bm-modal__box">
+    <div class="bm-modal__head">
+      <div>
+        <h3 class="bm-modal__title" id="bm-modal-title">Client Note</h3>
+        <p class="bm-modal__sub" id="bm-modal-sub"></p>
+      </div>
+      <button type="button" class="bm-modal__close" id="bm-modal-close" aria-label="Close note">×</button>
+    </div>
+    <p class="bm-modal__body" id="bm-modal-body"></p>
+  </div>
+</div>
 </div>
 
 <script>
@@ -188,6 +217,36 @@
 
   // A failed save forces its own tab; otherwise follow the URL hash
   show(root.dataset.forceTab || location.hash.slice(1) || "current");
+})();
+</script>
+
+<script>
+(function () {
+  const modal = document.getElementById("bm-note-modal");
+  if (!modal) return;
+  const titleEl = document.getElementById("bm-modal-title");
+  const subEl = document.getElementById("bm-modal-sub");
+  const bodyEl = document.getElementById("bm-modal-body");
+  const closeBtn = document.getElementById("bm-modal-close");
+
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".bm-note-btn");
+    if (btn) {
+      titleEl.textContent = btn.dataset.client;
+      subEl.textContent = btn.dataset.service;
+      bodyEl.textContent = btn.dataset.note;
+      modal.hidden = false;
+      closeBtn.focus();
+      return;
+    }
+    if (e.target === modal || e.target === closeBtn) {
+      modal.hidden = true;
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !modal.hidden) modal.hidden = true;
+  });
 })();
 </script>
 {% endblock %}

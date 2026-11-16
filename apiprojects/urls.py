@@ -5,9 +5,9 @@ urlpatterns = [
     path('salon/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('crm/dashboard/', views.crm_dashboard, name='crm_dashboard'),
     path("login_account/", views.login_view, name="login"),
+    path("login/", views.login_view, name="login"),
     path("register/", views.register_view, name="register"),
     path("logout/", views.logout, name="logout"),
-    path("login/", views.login_or_register, name="login"),
     path("staff/", views.staff_list, name="staff_list"),
     path("staff/<int:staff_id>/rate/", views.rate_staff, name="rate_staff"),    
     path("home/", views.homepage, name="homepage"),
@@ -28,4 +28,5 @@ urlpatterns = [
     path("crm/staff/<int:pk>/edit/", views.staff_edit, name="crm_staff_edit"),
     path("crm/staff/<int:pk>/delete/", views.staff_delete, name="crm_staff_delete"),
     path("reviews/new/", views.review_create, name="review_create"),
+    path("crm/revenue/", views.revenue_analysis, name="crm_revenue")
 ]

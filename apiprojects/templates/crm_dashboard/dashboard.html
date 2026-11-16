@@ -1,102 +1,221 @@
 {% extends "crm_dashboard/main_dashboard.html" %}
+{% load static %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
- <div class="header-row">
-    <div class="greetings">
-      <h1>Analytics Overview</h1>
-      <h3>Welcome back, {{ request.user.username }}! Here's your business at a glance.</h3>
+<link rel="stylesheet" href="{% static 'appointments/css/crm_theme.css' %}">
+
+<div class="crm-page" id="dash">
+  <div class="crm-progress" aria-hidden="true"><span></span></div>
+
+  <header class="crm-head">
+    <div>
+      <h1 class="crm-title">Analytics overview</h1>
+      <p class="crm-subtitle">
+        Welcome back, {{ request.user.username }}. Showing <strong id="dash-branch">{{ branch_name }}</strong>.
+      </p>
     </div>
 
-    <form method="get" class="option-select">
-      <select name="branch" class="branch-select" onchange="this.form.submit()">
-        <option value="">All branches</option>
-        {% for b in branches %}
-          <option value="{{ b.pk }}" {% if selected_branch and b.pk == selected_branch.pk %}selected{% endif %}>{{ b.name }}</option>
-        {% endfor %}
-      </select>
-      <select name="range" class="date-select" onchange="this.form.submit()">
-        {% for value, label in date_ranges %}
-          <option value="{{ value }}" {% if value == range_key %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
+    <form method="get" class="crm-filters" id="dash-filters">
+      <div class="crm-field">
+        <label class="crm-label" for="dash-branch-select">Branch</label>
+        <select class="crm-select" id="dash-branch-select" name="branch">
+          <option value="">All branches</option>
+          {% for b in branches %}
+            <option value="{{ b.pk }}" {% if selected_branch and b.pk == selected_branch.pk %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="crm-field">
+        <label class="crm-label" for="dash-range-select">Chart period</label>
+        <select class="crm-select" id="dash-range-select" name="range">
+          {% for value, label in date_ranges %}
+            <option value="{{ value }}" {% if value == range_key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <noscript><button class="crm-btn" type="submit">Apply</button></noscript>
     </form>
-  </div>
+  </header>
 
-  <div class="revenue-main">
-    <div class="today-revenue">
-      <p>TODAY'S TOTAL REVENUE</p>
-      <h1>$ {{ daily_revenue }}</h1>
-    </div>
-    <div class="total-revenue">
-      <p>Total Appointments:</p>
-      <h1>${{ total_revenue }}</h1>
-    </div>
-    <div class="total-appointments">
-      <p>Total Clients:</p>
-      <h1>{{ total_clients }}</h1>
-    </div>
-    <div class="total-clients">
-      <p>Average Rating:</p>
-      <h1>{{ average_rating|floatformat:"1" }}</h1>
-    </div>
-    <div class="chart-container-large">
-      <canvas id="Branch-Comparison"></canvas>
-    </div>
-    <div class="chart-container-small">
-      <canvas id="topServiceschart"></canvas>
-    </div>
-  </div>
+  <section class="crm-stats crm-stats--4" aria-label="Totals for {{ year }}" aria-live="polite">
+    <article class="crm-card">
+      <p class="crm-stat__label">Revenue</p>
+      <p class="crm-stat__value" data-card="revenue">{{ cards.revenue }}</p>
+      <p class="crm-stat__hint">Completed appointments in {{ year }}</p>
+    </article>
+    <article class="crm-card">
+      <p class="crm-stat__label">Appointments</p>
+      <p class="crm-stat__value" data-card="appointments">{{ cards.appointments }}</p>
+      <p class="crm-stat__hint">Booked in {{ year }}, excluding cancelled</p>
+    </article>
+    <article class="crm-card">
+      <p class="crm-stat__label">Clients</p>
+      <p class="crm-stat__value" data-card="clients">{{ cards.clients }}</p>
+      <p class="crm-stat__hint">Unique clients with a completed visit in {{ year }}</p>
+    </article>
+    <article class="crm-card">
+      <p class="crm-stat__label">Average rating</p>
+      <p class="crm-stat__value" data-card="rating">{{ cards.rating }}</p>
+      <p class="crm-stat__hint">Out of 5, from client reviews</p>
+    </article>
+  </section>
+
+  <section class="crm-grid crm-grid--wide-left">
+    <article class="crm-card">
+      <div class="crm-card__head">
+        <h2 class="crm-card__title">Branch comparison</h2>
+        <p class="crm-card__meta" data-range>{{ range_label }}</p>
+      </div>
+      <div class="crm-chart">
+        <canvas id="branch-chart" role="img" aria-label="Revenue and appointments for each branch"></canvas>
+      </div>
+    </article>
+
+    <article class="crm-card">
+      <div class="crm-card__head">
+        <h2 class="crm-card__title">Services by category</h2>
+        <p class="crm-card__meta" data-range>{{ range_label }}</p>
+      </div>
+      <div class="crm-chart" id="category-wrap">
+        <canvas id="category-chart" role="img" aria-label="Share of appointments by service category"></canvas>
+      </div>
+      <p class="crm-empty" id="category-empty" hidden>No bookings in this period.</p>
+    </article>
+  </section>
+</div>
 {% endblock %}
 
 {% block scripts %}
-{{ branch_chart|json_script:"branch-chart-data" }}
-{{ service_chart|json_script:"service-chart-data" }}
+{{ payload|json_script:"dash-data" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'appointments/css/crm_charts.js' %}"></script>
 <script>
-const branchData = JSON.parse(document.getElementById('branch-chart-data').textContent);
-const serviceData = JSON.parse(document.getElementById('service-chart-data').textContent);
-const palette = ['#FF6384', '#36A2EB', '#FFCE56', '#6A0DAD', '#1F9D55', '#FF9F40'];
+(function () {
+  var page = document.getElementById('dash');
+  var form = document.getElementById('dash-filters');
+  var categoryWrap = document.getElementById('category-wrap');
+  var categoryEmpty = document.getElementById('category-empty');
+  var initial = JSON.parse(document.getElementById('dash-data').textContent);
 
-// Bar chart: revenue on the left axis, appointment count on the right axis
-new Chart(document.getElementById('Branch-Comparison'), {
-  type: 'bar',
-  data: {
-    labels: branchData.labels,
-    datasets: [
-      { label: 'Revenue (₱)', data: branchData.revenue, backgroundColor: '#6A0DAD', borderRadius: 4, yAxisID: 'y' },
-      { label: 'Appointments', data: branchData.appointments, backgroundColor: '#FFCE56', borderRadius: 4, yAxisID: 'y1' }
-    ]
-  },
-  options: {
-    plugins: { title: { display: true, text: 'Branch Comparison', font: { size: 18 } } },
-    scales: {
-      y:  { beginAtZero: true, position: 'left',
-            ticks: { callback: v => '₱' + v.toLocaleString() } },
-      y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false },
-            ticks: { precision: 0 } }
-    }
+  var red = CRM.token('--crm-red-600');
+  var redSoft = CRM.token('--crm-red-200');
+  var copper = CRM.token('--crm-copper');
+  var sand = CRM.token('--crm-sand');
+
+  // With a branch picked, its bars keep the full colour and the others fade back.
+  function tint(count, selected, strong, soft) {
+    var out = [];
+    for (var i = 0; i < count; i++) out.push(selected === null || selected === i ? strong : soft);
+    return out;
   }
-});
 
-// Doughnut: top services
-const pie = document.getElementById('topServiceschart');
-if (serviceData.labels.length) {
-  new Chart(pie, {
+  var branchChart = new Chart(document.getElementById('branch-chart'), {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Revenue', data: [], yAxisID: 'y', borderRadius: 8, backgroundColor: red },
+        { label: 'Appointments', data: [], yAxisID: 'y1', borderRadius: 8, backgroundColor: copper }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              return ctx.datasetIndex === 0
+                ? ' Revenue: ' + CRM.pesoFull(ctx.parsed.y)
+                : ' Appointments: ' + ctx.parsed.y;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, ticks: { callback: function (v) { return CRM.peso(v); } } },
+        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { precision: 0 } }
+      }
+    }
+  });
+
+  var categoryChart = new Chart(document.getElementById('category-chart'), {
     type: 'doughnut',
     data: {
-      labels: serviceData.labels,
-      datasets: [{
-        data: serviceData.counts,
-        backgroundColor: serviceData.labels.map((_, i) => palette[i % palette.length])
-      }]
+      labels: [],
+      datasets: [{ data: [], backgroundColor: CRM.palette, borderColor: '#ffffff', borderWidth: 2 }]
     },
-    options: { cutout: '50%' }
+    options: {
+      maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
+    }
   });
-} else {
-  pie.insertAdjacentHTML('afterend', '<p style="text-align:center;color:#6b7385;">No bookings in this period.</p>');
-}
+
+  function apply(d) {
+    document.querySelectorAll('[data-card]').forEach(function (el) {
+      el.textContent = d.cards[el.dataset.card];
+    });
+    document.getElementById('dash-branch').textContent = d.branch_name;
+    document.querySelectorAll('[data-range]').forEach(function (el) { el.textContent = d.range_label; });
+
+    var b = d.branch_chart;
+    branchChart.data.labels = b.labels;
+    branchChart.data.datasets[0].data = b.revenue;
+    branchChart.data.datasets[0].backgroundColor = tint(b.labels.length, b.selected, red, redSoft);
+    branchChart.data.datasets[1].data = b.appointments;
+    branchChart.data.datasets[1].backgroundColor = tint(b.labels.length, b.selected, copper, sand);
+    branchChart.update();
+
+    var c = d.category_chart;
+    var hasData = c.counts.length > 0;
+    categoryWrap.hidden = !hasData;
+    categoryEmpty.hidden = hasData;
+    categoryChart.data.labels = c.labels;
+    categoryChart.data.datasets[0].data = c.counts;
+    categoryChart.update();
+  }
+
+  var latest = 0;
+
+  function load() {
+    var query = new URLSearchParams(new FormData(form)).toString();
+    var url = location.pathname + '?' + query;
+    var ticket = ++latest;
+
+    page.classList.add('is-loading');
+    page.setAttribute('aria-busy', 'true');
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (d) {
+        if (ticket !== latest) return;      // a newer selection is already on its way
+        apply(d);
+        history.replaceState(null, '', url);
+      })
+      .catch(function () {
+        // Session expired or the request failed: fall back to a normal page load.
+        if (ticket === latest) form.submit();
+      })
+      .finally(function () {
+        if (ticket === latest) {
+          page.classList.remove('is-loading');
+          page.removeAttribute('aria-busy');
+        }
+      });
+  }
+
+  form.addEventListener('change', load);
+  form.addEventListener('submit', function (e) { e.preventDefault(); load(); });
+
+  apply(initial);
+})();
 </script>
 {% endblock %}

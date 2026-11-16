@@ -205,6 +205,29 @@ h3 {
     flex: 1;
 }
 
+@media screen and (max-width: 768px) {
+
+    /* 1. Force the parent section into a vertical column */
+    .booking-section {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 30px !important;
+        padding: 20px 15px !important;
+    }
+
+    /* 2. Force both landing text and form to take full width */
+    .booking-landing,
+    .booking-form {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 3. Force the form grid into 1 single column */
+    .booking-form__grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 .full {
     grid-column: 1/-1;
 }
@@ -272,4 +295,112 @@ h3 {
 
 .booking-form__grid button:hover {
     background: #7d0916;
+}
+
+/* ===== Scroll-linked motion (shared by sections.css and reviews.css) ===== */
+:root {
+    --rise: 100px;
+    /* how far headers start below their final spot */
+    --reveal-range: entry 0% cover 30%;
+    /* starts as the element enters at the bottom, done by ~30% of the way through the screen */
+}
+
+@keyframes header-rise {
+    from {
+        opacity: 0;
+        translate: 0 var(--rise);
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+/* uses translate/scale (not transform) so the hover lift on cards keeps working */
+@keyframes fadeup {
+    from {
+        opacity: 0;
+        translate: 0 40px;
+        scale: .92;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+        scale: 1;
+    }
+}
+
+@keyframes autorotate {
+    from {
+        rotate: 0deg;
+    }
+
+    to {
+        rotate: 360deg;
+    }
+}
+
+/* ===== Booking section: stack on tablets and phones ===== */
+@media (max-width: 900px) {
+    .booking-section {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 28px;
+        min-height: auto;
+        padding: 48px 16px 56px;
+    }
+
+    .booking-form {
+        box-sizing: border-box;
+        align-items: stretch;
+        max-width: 520px;
+        min-height: 0;
+        margin: 0 auto;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 16px;
+        /* 16px stops iOS from zooming in when a field is focused */
+    }
+
+    .field textarea {
+        min-height: 96px;
+    }
+
+    .booking-form__grid .branch:empty {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    :root {
+        --rise: 56px;
+    }
+}
+
+@media (max-width: 520px) {
+    .booking-form {
+        padding: 16px;
+    }
+
+    .booking-form__grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .head-title h1,
+    .head-title h3 {
+        font-size: 28px;
+    }
+
+    .badges li {
+        font-size: 13px;
+    }
 }

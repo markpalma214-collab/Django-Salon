@@ -424,3 +424,65 @@
         transform: none;
     }
 }
+
+/* ===== Phones ===== */
+@media (max-width: 480px) {
+
+    .svc,
+    .ab {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .svc-head {
+        margin-bottom: 36px;
+    }
+
+    .ab-grid {
+        gap: 16px;
+    }
+
+    .ab-stat {
+        padding: 20px;
+    }
+}
+
+/* ===== Scroll-linked reveals =====
+   Browsers without animation-timeline (older Firefox) keep the "sec-rise" entrance above.
+   Keyframes live in style.css. `animation-timeline` has to come after the `animation`
+   shorthand, because the shorthand resets it. */
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+
+        .svc-eyebrow,
+        .svc-title,
+        .svc-sub {
+            animation: header-rise linear both;
+            animation-timeline: view();
+            animation-range: var(--reveal-range);
+        }
+
+        .svc-card,
+        .ab-box {
+            animation: fadeup linear both;
+            animation-timeline: view();
+            animation-range: var(--reveal-range);
+        }
+    }
+}
+
+/* ===== Stat icons spin once, the first time they scroll into view (class added in homepage.html) ===== */
+.ab-stat iconify-icon {
+    align-self: flex-start;
+    /* keeps the box icon-sized, so it spins around its own centre */
+}
+
+.ab-stat iconify-icon.is-spinning {
+    animation: autorotate 1.2s cubic-bezier(.22, .8, .2, 1) 1 both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ab-stat iconify-icon.is-spinning {
+        animation: none;
+    }
+}
