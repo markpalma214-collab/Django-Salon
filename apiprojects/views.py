@@ -778,6 +778,7 @@ def appointment_list(request):
         "deadline": deadline,
         "staff_avg": staff_stats["avg"],
         "staff_review_count": staff_stats["count"],
+        **_landing_context(),
     }
     return render(request, "appointments/list.html", context)
 
