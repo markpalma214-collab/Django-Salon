@@ -1,19 +1,27 @@
 # Environment Variables
 .env
+.env.*
 
-# Database
+# Database & Local Dumps
 db.sqlite3
+*.sqlite3
+*.sqlite3-journal
+database.json
 
 # Virtual Environments
 venv/
+.venv/
 env/
 
 # Python Cache
 __pycache__/
-*.pyc
+*.py[cod]
 
-# Django Media Uploads
+# Collected Static Files & Media Uploads
+staticfiles/
 media/
 
-# VS Code settings (optional, but good practice)
+# IDE & OS Files
 .vscode/
+.DS_Store
+Thumbs.db
