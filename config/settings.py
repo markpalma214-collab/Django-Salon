@@ -24,13 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@mrzg(n76c@m9i%gbh7-tnqp(#0-0%7cwuixmt2*+(_a&kg&hw'
-
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-local-fallback-key")
+CSRF_TRUSTED_ORIGINS = ["https://*.vercel.app"]
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
 
+ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
+CSRF_TRUSTED_ORIGINS = ["https://*.vercel.app"]
 
 # Application definition
 
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 SITE_ID = 1
@@ -77,14 +79,15 @@ SOCIALACCOUNT_LOGIN_ON_GET = True  # skips the extra "Continue" confirmation pag
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
-            "client_id": os.environ["GOOGLE_CLIENT_ID"],
-            "secret": os.environ["GOOGLE_CLIENT_SECRET"],
+            "client_id": os.environ.get("GOOGLE_CLIENT_ID", ""),
+            "secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
             "key": "",
         },
         "SCOPE": ["profile", "email"],
         "AUTH_PARAMS": {"access_type": "online"},
     }
 }
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
