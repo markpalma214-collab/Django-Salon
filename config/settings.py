@@ -157,14 +157,35 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
+if os.environ.get("SUPABASE_S3_ACCESS_KEY_ID"):
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "access_key": os.environ.get("SUPABASE_S3_ACCESS_KEY_ID"),
+                "secret_key": os.environ.get("SUPABASE_S3_SECRET_ACCESS_KEY"),
+                "bucket_name": "media",
+                "endpoint_url": os.environ.get("SUPABASE_S3_ENDPOINT_URL"),
+                "region_name": "ap-southeast-1",
+                "addressing_style": "path",
+                "querystring_auth": False,
+                "custom_domain": f"{os.environ.get('SUPABASE_PROJECT_REF')}.supabase.co/storage/v1/object/public/media",
+                "file_overwrite": False,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
 
 
 # Email
