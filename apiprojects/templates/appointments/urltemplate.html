@@ -53,3 +53,17 @@
     <link rel="stylesheet" href="{% static 'appointments/css/frame.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
+<body>
+    <div class="layout">
+        {% include "appointments/_navbar.html" %}
+
+        {% block content %}{% endblock %}
+
+        {% include "appointments/_footer.html" %}
+    </div>
+
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+    <script src="{% static 'appointments/javascript/scrollbar.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
