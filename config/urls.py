@@ -18,8 +18,31 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
+from django.urls import path, include
+from django.contrib.sitemaps.views import sitemap
+from apiprojects.sitemaps import StaticViewSitemap, ServiceCategorySitemap
+
+
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /accounts/",
+        "Sitemap: https://michellesalonph.vercel.app/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+sitemaps = {
+    "static": StaticViewSitemap,
+    "categories": ServiceCategorySitemap,
+}
 
 urlpatterns = [
+    path("robots.txt", robots_txt, name="robots_txt"),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
     path('admin/', admin.site.urls),
     path('accounts/', include("allauth.urls")),
     path('', include('apiprojects.urls'))

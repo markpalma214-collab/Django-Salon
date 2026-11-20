@@ -4,8 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ site.salon_name|default:"Michelle's Salon" }}{% endblock %}</title>
 
+    <!-- 1. Primary Search Engine Tags -->
+    <title>{% block title %}{{ site.salon_name|default:"Michelle's Salon" }} | Hair & Nail Salon in Naic, Cavite{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Book precision haircuts, hair rebond, nail extensions, and relaxing spa treatments online at {{ site.salon_name|default:"Michelle's Salon" }} in Naic, Cavite.{% endblock %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+    <!-- 2. Open Graph Tags (Facebook & Messenger Link Previews) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ site.salon_name|default:"Michelle's Salon" }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}{{ site.salon_name|default:"Michelle's Salon" }} | Hair & Nail Salon in Naic, Cavite{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Explore our salon services in Naic, Cavite and book your appointment online in seconds.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://michellesalonph.vercel.app{% static 'appointments/images/salon.jpg' %}{% endblock %}">
+
+    <!-- 3. Structured Data (Local Beauty Salon Schema for Naic, Cavite) -->
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BeautySalon",
+      "name": "{{ site.salon_name|default:"Michelle's Salon"|escapejs }}",
+      "url": "https://michellesalonph.vercel.app",
+      "image": "https://michellesalonph.vercel.app{% static 'appointments/images/salon.jpg' %}",
+      "priceRange": "₱₱",
+      "currenciesAccepted": "PHP",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Naic",
+        "addressRegion": "Cavite",
+        "addressCountry": "PH"
+      },
+      "description": "Full-service hair and nail salon in Naic, Cavite offering haircuts, hair rebond, hair color, manicure, pedicure, foot spa, and nail extensions."
+    }
+    </script>
+    {% endblock %}
+
+    <!-- Fonts & Stylesheets -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
@@ -18,17 +53,3 @@
     <link rel="stylesheet" href="{% static 'appointments/css/frame.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <div class="layout">
-        {% include "appointments/_navbar.html" %}
-
-        {% block content %}{% endblock %}
-
-        {% include "appointments/_footer.html" %}
-    </div>
-
-    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
-    <script src="{% static 'appointments/javascript/scrollbar.js' %}"></script>
-    {% block extra_js %}{% endblock %}
-</body>
-</html>
